@@ -1,0 +1,23 @@
+[
+  {
+    "script": "analysis/bulk_rna/supplement/01_fit_within_subset_responses.R",
+    "source": "archive/historical/scripts/bulk_RNA/scripts/reviewer2_ASC_bulk_post_vs_pre_overlap.R",
+    "removed_initialization": "root_arg <- grep(\"^--project-root=\", args, value = TRUE)\n\nif (length(root_arg)) {\n  project_root <- sub(\"^--project-root=\", \"\", root_arg[[1]])\n} else {\n  file_arg <- grep(\"^--file=\", commandArgs(trailingOnly = FALSE), value = TRUE)\n  script_path <- normalizePath(sub(\"^--file=\", \"\", file_arg[[1]]), winslash = \"/\", mustWork = TRUE)\n  project_root <- dirname(dirname(script_path))\n}\n\nproject_root <- normalizePath(project_root, winslash = \"/\", mustWork = TRUE)\ninput_file <- file.path(project_root, \"20260126 bulk ASC.csv\")\noutput_dir <- file.path(project_root, \"revision_outputs\", \"reviewer2_transcriptomic_signature\")\n\n",
+    "replacement_initialization": "project_root <- .output\ninput_file <- .input\noutput_dir <- file.path(.output, \"within_subset\")\n",
+    "original_prefix_suffix_unchanged": true
+  },
+  {
+    "script": "analysis/bulk_rna/supplement/02_summarize_response_overlap.R",
+    "source": "archive/historical/scripts/bulk_RNA/scripts/reviewer2_ASC_bulk_complete_response.R",
+    "removed_initialization": "root_arg <- grep(\"^--project-root=\", args, value = TRUE)\nif (length(root_arg)) {\n  project_root <- sub(\"^--project-root=\", \"\", root_arg[[1]])\n} else {\n  file_arg <- grep(\"^--file=\", commandArgs(trailingOnly = FALSE), value = TRUE)\n  script_path <- normalizePath(sub(\"^--file=\", \"\", file_arg[[1]]), winslash = \"/\", mustWork = TRUE)\n  project_root <- dirname(dirname(script_path))\n}\nproject_root <- normalizePath(project_root, winslash = \"/\", mustWork = TRUE)\n\nbase_output_dir <- file.path(project_root, \"revision_outputs\", \"reviewer2_transcriptomic_signature\")\noutput_dir <- file.path(base_output_dir, \"submission_ready\")\ninput_file <- file.path(project_root, \"20260126 bulk ASC.csv\")\np_result_file <- file.path(base_output_dir, \"ASC_P_Post_vs_Pre_limma_full.tsv\")\nn_result_file <- file.path(base_output_dir, \"ASC_N_Post_vs_Pre_limma_full.tsv\")\ndid_file <- file.path(project_root, \"ASC_RNA_DID_P_specific_change_all.csv\")\n\n",
+    "replacement_initialization": "project_root <- .output\nbase_output_dir <- file.path(.output, \"within_subset\")\noutput_dir <- file.path(.output, \"submission\")\ninput_file <- .input\np_result_file <- file.path(base_output_dir, \"ASC_P_Post_vs_Pre_limma_full.tsv\")\nn_result_file <- file.path(base_output_dir, \"ASC_N_Post_vs_Pre_limma_full.tsv\")\ndid_file <- normalizePath(.value(\"--did-table\"), winslash = \"/\", mustWork = TRUE)\n",
+    "original_prefix_suffix_unchanged": true
+  },
+  {
+    "script": "analysis/bulk_rna/supplement/03_plot_response_volcano_and_camera.R",
+    "source": "archive/historical/scripts/bulk_RNA/scripts/reviewer2_ASC_bulk_volcano_CAMERA.R",
+    "removed_initialization": "root_arg <- grep(\"^--project-root=\", args, value = TRUE)\nif (length(root_arg)) {\n  project_root <- sub(\"^--project-root=\", \"\", root_arg[[1]])\n} else {\n  file_arg <- grep(\"^--file=\", commandArgs(trailingOnly = FALSE), value = TRUE)\n  script_path <- normalizePath(sub(\"^--file=\", \"\", file_arg[[1]]), winslash = \"/\", mustWork = TRUE)\n  project_root <- dirname(dirname(script_path))\n}\nproject_root <- normalizePath(project_root, winslash = \"/\", mustWork = TRUE)\n\nbase_dir <- file.path(project_root, \"revision_outputs\", \"reviewer2_transcriptomic_signature\")\noutput_dir <- file.path(base_dir, \"submission_ready\")\ninput_file <- file.path(project_root, \"20260126 bulk ASC.csv\")\np_result_file <- file.path(output_dir, \"Table_Sx_ASC_P_Post_vs_Pre_full.tsv\")\nn_result_file <- file.path(output_dir, \"Table_Sy_ASC_N_Post_vs_Pre_full.tsv\")\n\n",
+    "replacement_initialization": "project_root <- .output\nbase_dir <- file.path(.output, \"within_subset\")\noutput_dir <- file.path(.output, \"submission\")\ninput_file <- .input\np_result_file <- file.path(output_dir, \"Table_Sx_ASC_P_Post_vs_Pre_full.tsv\")\nn_result_file <- file.path(output_dir, \"Table_Sy_ASC_N_Post_vs_Pre_full.tsv\")\n",
+    "original_prefix_suffix_unchanged": true
+  }
+]

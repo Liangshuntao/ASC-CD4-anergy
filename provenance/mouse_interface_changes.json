@@ -1,0 +1,78 @@
+[
+  {
+    "script": "analysis/mouse_scrna/run_mouse_analysis.R",
+    "source": "archive/historical/scripts/mouse_scRNA/run_submission.R",
+    "source_sha256": "28739fc3ec2a055e2ccb5e210b352abf7f3f26a485a360d4526a58cc6a3d419e",
+    "interface_changes": [
+      {
+        "before": "\"D:/R/20250926/seu_scWAT.rds\"",
+        "after": "NULL",
+        "count": 1
+      },
+      {
+        "before": "file.path(root, \"scripts\", script)",
+        "after": "file.path(root, \"stages\", script)",
+        "count": 1
+      },
+      {
+        "before": "\"02_Runnable analysis.R\"",
+        "after": "\"01_compute_signatures_and_trajectory.R\"",
+        "count": 2
+      },
+      {
+        "before": "\"03_Strict figure finalization.R\"",
+        "after": "\"02_finalize_figure_panels.R\"",
+        "count": 1
+      },
+      {
+        "before": "\"04_LIANA Figure3F-H.R\"",
+        "after": "\"03_predict_asc_cd4_communication.R\"",
+        "count": 1
+      },
+      {
+        "before": "else \"run_submission.R\"",
+        "after": "else \"run_mouse_analysis.R\"",
+        "count": 1
+      }
+    ],
+    "exact_transform_verified": true
+  },
+  {
+    "script": "analysis/mouse_scrna/stages/01_compute_signatures_and_trajectory.R",
+    "source": "archive/historical/scripts/mouse_scRNA/scripts/02_Runnable analysis.R",
+    "source_sha256": "916f4e7f9d4269c7cb720413f8abd6b42de5c95a8d747bc2547485ec6da6db3c",
+    "interface_changes": [
+      {
+        "before": "\"D:/R/20250926/seu_scWAT.rds\"",
+        "after": "NULL",
+        "count": 1
+      },
+      {
+        "before": "D:/R/20250926/20250926.R",
+        "after": "the historical mouse source (see archive provenance)",
+        "count": 1
+      }
+    ],
+    "exact_transform_verified": true
+  },
+  {
+    "script": "analysis/mouse_scrna/stages/02_finalize_figure_panels.R",
+    "source": "archive/historical/scripts/mouse_scRNA/scripts/03_Strict figure finalization.R",
+    "source_sha256": "7a609a181aa8dc73ba863664de4fed27ea134490b877f216afb31cfa3fc6a216",
+    "interface_changes": [
+      {
+        "before": "\"D:/R/20250926/seu_scWAT.rds\"",
+        "after": "NULL",
+        "count": 1
+      }
+    ],
+    "exact_transform_verified": true
+  },
+  {
+    "script": "analysis/mouse_scrna/stages/03_predict_asc_cd4_communication.R",
+    "source": "archive/historical/scripts/mouse_scRNA/scripts/04_LIANA Figure3F-H.R",
+    "source_sha256": "c8a5a984ac42efefc6480a6b460a6828abd743b954b24cd30ed49734c3aa3119",
+    "interface_changes": [],
+    "exact_transform_verified": true
+  }
+]

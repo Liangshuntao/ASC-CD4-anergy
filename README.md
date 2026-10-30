@@ -1,6 +1,31 @@
 # ASC CD4 T cell anergy analysis code
 
-Initial code archive assembled on 30 October 2026. This is not the final submission release.
+Code curation in progress, 30 October 2026. This is not the final submission release.
+
+## Start here
+
+Recommended entry points are under `analysis/`, with explicit input/output arguments.
+Historical scripts are under `archive/historical/` and are NOT recommended entry points.
+Do not run the historical bulk script from beginning to end: its first t-test
+section is exploratory and is not the final limma/DID workflow.
+
+- [Bulk RNA instructions](analysis/bulk_rna/README.md): extracted primary model,
+  plots and sensitivity stages. Three primary result tables were regenerated and
+  matched stored historical numerical results exactly. Current Figure 8A variance
+  was also reproduced (89.26% / 4.42%). Full visual equivalence is not claimed.
+- [Mouse single-cell instructions](analysis/mouse_scrna/README.md): functionally
+  named stages, explicit input/output arguments and updated runner references.
+  Interface transformations and syntax were checked; computations were not rerun.
+- Human single-cell, proteomic and clinical workflows remain
+  under active source reconciliation. Their historical files are not promoted to
+  recommended workflows by this update.
+- Bulk reviewer-supplement scripts now have an explicit three-stage runner;
+  computation bodies are unchanged, with runtime-result comparison still pending.
+- [Human adipose figure replay](analysis/human_adipose/README.md): the final
+  annotated-object figure script now accepts explicit object, mapping and output
+  paths. This does not replace the still-unfinished preprocessing curation.
+
+See [CURATION_STATUS.md](CURATION_STATUS.md) for outstanding work and validation scope.
 
 ## Status and scope
 
@@ -8,7 +33,8 @@ This package contains recovered custom R scripts for mouse single-cell analyses,
 human public-cohort validation, stromal bulk RNA-seq, proteomics and clinical-cohort
 analyses. It is not a new software package or a verified end-to-end reanalysis.
 See Figure_script_mapping.csv for coverage and unresolved attribution.
-See ARCHIVE_STATUS.md for the checks performed and the limits of this initial archive.
+See archive/historical/ARCHIVE_STATUS.md for checks on the initial archive and
+provenance/ for curation-specific source mappings.
 
 The original scripts are preserved without changing analysis logic. Some retain
 historical workstation paths, interactive operations, automatic installation or
@@ -18,20 +44,20 @@ No analyses, installations or downloads were executed during packaging.
 
 ## Modules and execution
 
-- scripts/mouse_scRNA: existing curated runner and README; starts from a manually
+- analysis/mouse_scrna: curated runner; starts from a manually
   annotated Seurat object rather than raw reads. Original annotation-generation
   code was not recovered. Historical panel mapping is provided in provenance/.
-- scripts/human_PRJNA932038: preprocessing and revised reviewer-figure code.
+- archive/historical/scripts/human_PRJNA932038: preprocessing and revised reviewer-figure code.
   Intermediate annotation object and original project configuration are required;
   this is not yet a standalone pipeline. No controlled-access data are included.
-- scripts/human_GSE161529: annotation, ASC_P-like candidate plots, patient-level
+- archive/historical/scripts/human_GSE161529: annotation, ASC_P-like candidate plots, patient-level
   PAM50 resemblance and ER-positive CD4-state analyses. Uses the authors' public
   Seurat resources and separately generated intermediate annotations.
-- scripts/bulk_RNA: historical analysis and reviewer-response scripts. Supply the
+- analysis/bulk_rna: extracted final primary limma and sensitivity code. Supply the
   original normalized-expression table and required differential-analysis tables.
-- scripts/proteomics: historical interactive source only; not validated for batch
+- archive/historical/scripts/proteomics: historical interactive source only; not validated for batch
   execution. Includes installation calls and sequential interactive corrections.
-- scripts/clinical_cohorts: historical TCGA scripts. These may download public
+- archive/historical/scripts/clinical_cohorts: historical TCGA scripts. These may download public
   data. METABRIC-specific source attribution remains unresolved.
 
 ## Data and environment
@@ -42,7 +68,7 @@ TCGA input: TCGA-BRCA through the GDC; retain the data-access conditions.
 Raw data, expression matrices and large intermediate objects are not redistributed.
 New bulk/proteomics data accessions and remaining processed-input access routes
 must be reconciled with the manuscript before claiming complete availability.
-Software evidence and workflow boundaries are in environment/software_versions.md.
+Software evidence and workflow boundaries are in archive/historical/environment/software_versions.md.
 
 ## Custom score caveat
 
