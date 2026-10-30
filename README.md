@@ -16,9 +16,14 @@ section is exploratory and is not the final limma/DID workflow.
 - [Mouse single-cell instructions](analysis/mouse_scrna/README.md): functionally
   named stages, explicit input/output arguments and updated runner references.
   Interface transformations and syntax were checked; computations were not rerun.
-- Human single-cell, proteomic and clinical workflows remain
-  under active source reconciliation. Their historical files are not promoted to
-  recommended workflows by this update.
+- [Proteomic replay](analysis/proteomics/README.md): final protein/pathway models
+  replay from the historical processed checkpoint; four result tables reproduce
+  exactly. Original stochastic preprocessing is not silently rerun.
+- [Clinical cohorts](analysis/clinical_cohorts/README.md): final TCGA blocks and
+  the METABRIC DSS branch, with explicit input files and no automatic download.
+  Full numerical clinical replay has not been validated in this environment.
+- Human breast-cohort replay and earlier human-adipose preprocessing remain under
+  active source reconciliation; those historical files are not recommended entries.
 - Bulk reviewer-supplement scripts now have an explicit three-stage runner;
   computation bodies are unchanged, with runtime-result comparison still pending.
 - [Human adipose figure replay](analysis/human_adipose/README.md): the final
@@ -55,10 +60,10 @@ No analyses, installations or downloads were executed during packaging.
   Seurat resources and separately generated intermediate annotations.
 - analysis/bulk_rna: extracted final primary limma and sensitivity code. Supply the
   original normalized-expression table and required differential-analysis tables.
-- archive/historical/scripts/proteomics: historical interactive source only; not validated for batch
-  execution. Includes installation calls and sequential interactive corrections.
-- archive/historical/scripts/clinical_cohorts: historical TCGA scripts. These may download public
-  data. METABRIC-specific source attribution remains unresolved.
+- analysis/proteomics: provenance-linked models and plots replayed from processed
+  historical state, rather than a new random imputation.
+- analysis/clinical_cohorts: provenance-linked TCGA analyses and final METABRIC
+  DSS branch. Original median-OS/exploratory branches remain historical only.
 
 ## Data and environment
 

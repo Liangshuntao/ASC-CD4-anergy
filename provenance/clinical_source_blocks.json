@@ -1,0 +1,58 @@
+[
+  {
+    "script": "analysis/clinical_cohorts/stages/01_score_tcga_cohort.R",
+    "source": "archive/historical/scripts/clinical_cohorts/TCGA_BRCA_ASC.R",
+    "start": 44,
+    "end": 88,
+    "subtype_input_explicit": true,
+    "allowed_edits": "explicit subtype input; GSVA API feature detection; plot wording only"
+  },
+  {
+    "script": "analysis/clinical_cohorts/stages/02_analyze_tcga_survival_and_correlations.R",
+    "source": "archive/historical/scripts/clinical_cohorts/TCGA_BRCA_ASC.R",
+    "start": 90,
+    "end": 361,
+    "subtype_input_explicit": false,
+    "allowed_edits": "explicit subtype input; GSVA API feature detection; plot wording only"
+  },
+  {
+    "script": "analysis/clinical_cohorts/stages/03_analyze_tcga_pathway_landscape.R",
+    "source": "archive/historical/scripts/clinical_cohorts/TCGA_BRCA_ASC.R",
+    "start": 365,
+    "end": 427,
+    "subtype_input_explicit": false,
+    "allowed_edits": "explicit subtype input; GSVA API feature detection; plot wording only"
+  },
+  {
+    "script": "analysis/clinical_cohorts/stages/04_prepare_metabric_scores.R",
+    "source": "archive/historical/scripts/clinical_cohorts/TCGA_BRCA_ASC.R",
+    "start": 457,
+    "end": 508,
+    "subtype_input_explicit": false,
+    "allowed_edits": "explicit subtype input; GSVA API feature detection; plot wording only"
+  },
+  {
+    "script": "analysis/clinical_cohorts/stages/05_analyze_metabric_disease_specific_survival.R",
+    "source": "archive/historical/scripts/clinical_cohorts/TCGA_BRCA_ASC.R",
+    "start": 576,
+    "end": 660,
+    "subtype_input_explicit": false,
+    "allowed_edits": "explicit subtype input; GSVA API feature detection; plot wording only"
+  },
+  {
+    "script": "analysis/clinical_cohorts/stages/06_analyze_custom_composite_score.R",
+    "source": "archive/historical/scripts/clinical_cohorts/TCGA_BRCA_ASC.R",
+    "start": 665,
+    "end": 740,
+    "subtype_input_explicit": false,
+    "allowed_edits": "explicit subtype input; GSVA API feature detection; plot wording only"
+  },
+  {
+    "script": "analysis/clinical_cohorts/stages/07_analyze_target_expression.R",
+    "source": "archive/historical/scripts/clinical_cohorts/TCGA_BRCA_ASC.R",
+    "start": 744,
+    "end": 794,
+    "subtype_input_explicit": false,
+    "allowed_edits": "explicit subtype input; GSVA API feature detection; plot wording only"
+  }
+]

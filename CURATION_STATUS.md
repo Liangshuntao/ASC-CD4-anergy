@@ -17,7 +17,7 @@ The full requested curation is IN PROGRESS, not complete.
 - Mouse: the runner and three stages were functionally renamed. Internal stage
   references were updated and private default input paths removed. Exact allowed
   text transformations were checked. The full single-cell workflow was not rerun.
-- Seventeen recommended R files parse. Windows locale/Unicode warnings persist;
+- Recommended R files are checked in validation/curated_R_syntax_check.csv. Windows locale/Unicode warnings persist;
   parsing is not runtime validation of every stage.
 - The final PRJNA932038 candidate-evidence figure has an explicit input object,
   annotation map and separate output interface. Paths/dependencies preflight passed;
@@ -30,8 +30,17 @@ The full requested curation is IN PROGRESS, not complete.
 - Reviewer-response bulk scripts and execution order are curated; runtime-result
   comparison and complete dependency/input checks remain pending.
 - Curate human single-cell workflows with reviewed annotation/config dependencies.
-- Recover final proteomic blocks rather than promote the interactive historical script.
-- Reconcile clinical and METABRIC source blocks and the custom score naming issue.
+- Proteomic final blocks are recovered. Checkpoint replay preserves the original
+  imputed values and scores: four result tables match all seven numeric fields
+  exactly. Five plot/model stages execute. CSV encoding and matrix-dimname I/O
+  repairs are recorded; no stochastic imputation was rerun. Access to the original
+  processed checkpoint remains a data-availability requirement.
+- Clinical final blocks and METABRIC DSS source were recovered. Eighteen combined
+  proteomic/clinical source blocks passed expression checks after documented I/O,
+  API-compatibility or label substitutions. METABRIC preflight exposed missing
+  local survminer and ggpubr; these were documented, not installed. Clinical
+  numerical replay and exact input-version closure remain pending. The custom
+  score still must not be represented as official TIDE in manuscript language.
 - Complete exact final-panel lineage, input routes, package requirements and
   interface tests for all modules before a final submission release.
 
