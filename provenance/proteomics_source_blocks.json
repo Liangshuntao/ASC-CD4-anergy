@@ -4,76 +4,90 @@
     "source": "archive/historical/scripts/proteomics/20251126 protein.R",
     "start": 171,
     "end": 206,
-    "allowed_edit": "explicit input/BOM decoding; as.matrix preserves existing matrix dimnames (no numeric change)"
+    "allowed_edit": "explicit input/BOM; matrix-dimname preservation; remove empty ggsave argument; no numeric changes"
   },
   {
     "script": "analysis/proteomics/stages/01_fit_protein_and_pathway_models.R",
     "source": "archive/historical/scripts/proteomics/20251126 protein.R",
     "start": 943,
     "end": 975,
-    "allowed_edit": "explicit input/BOM decoding; as.matrix preserves existing matrix dimnames (no numeric change)"
+    "allowed_edit": "explicit input/BOM; matrix-dimname preservation; remove empty ggsave argument; no numeric changes"
   },
   {
     "script": "analysis/proteomics/stages/01_fit_protein_and_pathway_models.R",
     "source": "archive/historical/scripts/proteomics/20251126 protein.R",
     "start": 448,
     "end": 484,
-    "allowed_edit": "explicit input/BOM decoding; as.matrix preserves existing matrix dimnames (no numeric change)"
+    "allowed_edit": "explicit input/BOM; matrix-dimname preservation; remove empty ggsave argument; no numeric changes"
   },
   {
     "script": "analysis/proteomics/stages/01_fit_protein_and_pathway_models.R",
     "source": "archive/historical/scripts/proteomics/20251126 protein.R",
     "start": 1183,
     "end": 1216,
-    "allowed_edit": "explicit input/BOM decoding; as.matrix preserves existing matrix dimnames (no numeric change)"
+    "allowed_edit": "explicit input/BOM; matrix-dimname preservation; remove empty ggsave argument; no numeric changes"
   },
   {
     "script": "analysis/proteomics/stages/02_plot_compartment_pca.R",
     "source": "archive/historical/scripts/proteomics/20251126 protein.R",
     "start": 147,
     "end": 169,
-    "allowed_edit": "explicit input/BOM decoding; as.matrix preserves existing matrix dimnames (no numeric change)"
+    "allowed_edit": "explicit input/BOM; matrix-dimname preservation; remove empty ggsave argument; no numeric changes"
   },
   {
     "script": "analysis/proteomics/stages/02_plot_compartment_pca.R",
     "source": "archive/historical/scripts/proteomics/20251126 protein.R",
     "start": 919,
     "end": 939,
-    "allowed_edit": "explicit input/BOM decoding; as.matrix preserves existing matrix dimnames (no numeric change)"
+    "allowed_edit": "explicit input/BOM; matrix-dimname preservation; remove empty ggsave argument; no numeric changes"
   },
   {
     "script": "analysis/proteomics/stages/03_plot_stromal_pathways.R",
     "source": "archive/historical/scripts/proteomics/20251126 protein.R",
     "start": 554,
     "end": 675,
-    "allowed_edit": "explicit input/BOM decoding; as.matrix preserves existing matrix dimnames (no numeric change)"
+    "allowed_edit": "explicit input/BOM; matrix-dimname preservation; remove empty ggsave argument; no numeric changes"
   },
   {
     "script": "analysis/proteomics/stages/04_plot_stromal_candidate_modules.R",
     "source": "archive/historical/scripts/proteomics/20251126 protein.R",
     "start": 681,
     "end": 707,
-    "allowed_edit": "explicit input/BOM decoding; as.matrix preserves existing matrix dimnames (no numeric change)"
+    "allowed_edit": "explicit input/BOM; matrix-dimname preservation; remove empty ggsave argument; no numeric changes"
   },
   {
     "script": "analysis/proteomics/stages/04_plot_stromal_candidate_modules.R",
     "source": "archive/historical/scripts/proteomics/20251126 protein.R",
     "start": 729,
     "end": 886,
-    "allowed_edit": "explicit input/BOM decoding; as.matrix preserves existing matrix dimnames (no numeric change)"
+    "allowed_edit": "explicit input/BOM; matrix-dimname preservation; remove empty ggsave argument; no numeric changes"
   },
   {
     "script": "analysis/proteomics/stages/05_plot_tcell_pathways_and_proliferation.R",
     "source": "archive/historical/scripts/proteomics/20251126 protein.R",
     "start": 1241,
     "end": 1277,
-    "allowed_edit": "explicit input/BOM decoding; as.matrix preserves existing matrix dimnames (no numeric change)"
+    "allowed_edit": "explicit input/BOM; matrix-dimname preservation; remove empty ggsave argument; no numeric changes"
   },
   {
     "script": "analysis/proteomics/stages/05_plot_tcell_pathways_and_proliferation.R",
     "source": "archive/historical/scripts/proteomics/20251126 protein.R",
     "start": 1279,
     "end": 1426,
-    "allowed_edit": "explicit input/BOM decoding; as.matrix preserves existing matrix dimnames (no numeric change)"
+    "allowed_edit": "explicit input/BOM; matrix-dimname preservation; remove empty ggsave argument; no numeric changes"
+  },
+  {
+    "script": "analysis/proteomics/stages/06_plot_supplementary_differential_proteins.R",
+    "source": "archive/historical/scripts/proteomics/20251126 protein.R",
+    "start": 208,
+    "end": 264,
+    "allowed_edit": "explicit input/BOM; matrix-dimname preservation; remove empty ggsave argument; no numeric changes"
+  },
+  {
+    "script": "analysis/proteomics/stages/06_plot_supplementary_differential_proteins.R",
+    "source": "archive/historical/scripts/proteomics/20251126 protein.R",
+    "start": 977,
+    "end": 1030,
+    "allowed_edit": "explicit input/BOM; matrix-dimname preservation; remove empty ggsave argument; no numeric changes"
   }
 ]

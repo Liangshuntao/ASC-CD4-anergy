@@ -19,6 +19,8 @@ packages <- c("GSVA", "survival", "survminer", "dplyr", "ggpubr", "ggplot2", "pa
 if (stage == "tcga") packages <- c(packages, "SummarizedExperiment", "cowplot", "pheatmap", "clusterProfiler", "msigdbr", "limma", "tidyr", "enrichplot")
 missing <- packages[!vapply(packages, requireNamespace, logical(1), quietly = TRUE)]
 if (length(missing)) stop("Install dependencies separately: ", paste(missing, collapse = ", "))
+if (stage == "tcga" && !"ssgseaParam" %in% getNamespaceExports("GSVA"))
+  stop("The retained TCGA pathway stage requires GSVA::ssgseaParam; use a compatible original analysis environment")
 env <- new.env(parent = globalenv())
 if (stage == "tcga") {
   if (is.null(value("--tcga-object")) || is.null(value("--subtypes"))) stop("Supply --tcga-object and --subtypes")

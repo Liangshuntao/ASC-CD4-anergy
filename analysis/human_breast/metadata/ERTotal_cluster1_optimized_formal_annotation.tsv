@@ -1,0 +1,8 @@
+cluster	n_cells	celltype_final	short_label	compartment	CD4_analysis_role	confidence	key_positive_markers	interpretation_note
+0	1862	Cytotoxic NK/gamma-delta/CD8 T lymphocytes (mixed)	Cytotoxic_NK_gdT_CD8T	Immune	Exclude_from_CD4_Tconv_Treg	High_broad_lineage_moderate_sublineage	NKG7;GNLY;KLRD1;KLRC1;KLRC2;PRF1;GZMH;CCL3;CCL4;TRDC;TRGC2;CD8A;CD8B	Mixed cytotoxic compartment; do not force pure NK or CD8 identity.
+1	1640	CD4 conventional T cells naive/central-memory-like	CD4_Tconv_IL7R_CCR7	Immune	Primary_CD4_Tconv	High	CD40LG;IL7R;CCR7;TCF7;LEF1;SELL;KLF2;KLRB1;CD6;BCL11B	Primary CD4 Tconv compartment for state scoring.
+2	1006	Activated tumor-infiltrating regulatory T cells	Treg_activated	Immune	Primary_Treg	High	FOXP3;IL2RA;CTLA4;TNFRSF4;ICOS;ENTPD1;TIGIT;CD4;BATF;CXCL13	Principal Treg compartment.
+3	708	Luminal epithelial-like contaminant or mixed-cell cluster	Luminal_epithelial_contaminant	Epithelial_mixed	Exclude_nonimmune	High	ESR1;MUC1;TFF3;AGR3;CA12;AZGP1;FXYD3;RAB25;S100A14;COL1A1;SPARC	Exclude from immune analyses; mixed-cell/doublet status is not formally tested.
+4	233	Cycling lineage-unresolved cells	Cycling_lineage_unresolved	Lineage_unresolved	Exclude_pending_lineage_validation	High_cycling_low_lineage	MKI67;TOP2A;UBE2C;BIRC5;AURKB;RRM2;TYMS;DLGAP5;ASPM;NUSAP1	Do not assign to CD4 Tconv or Treg without independent lineage evidence.
+5	132	Mast cells	Mast_cells	Immune	Exclude_from_CD4_Tconv_Treg	High	TPSAB1;TPSB2;CPA3;KIT;MS4A2;HDC;GATA2;IL1RL1;SIGLEC8;HPGDS	Canonical mast-cell population.
+6	129	Activated cytotoxic T/NK-like lymphocytes	Activated_cytotoxic_T_NK	Immune	Exclude_from_CD4_Tconv_Treg	Moderate	GZMB;XCL1;XCL2;CCL3;TNFRSF9;LAG3;CRTAM;JAML	Small activated cytotoxic compartment; CD8 versus NK distinction remains unresolved.

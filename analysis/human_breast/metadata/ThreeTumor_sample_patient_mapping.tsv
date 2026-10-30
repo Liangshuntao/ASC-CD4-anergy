@@ -1,0 +1,28 @@
+dataset	sample_name	group_id	patient_id	cancer_type	geo_id	mapping_source
+ERTotal	ER-0001	ER_0001	0001	ER+ tumour	GSM4909296	Scientific Data 2022 Supplementary Table 1
+ERTotal	ER-0025	ER_0025	0025	ER+ tumour	GSM4909302	Scientific Data 2022 Supplementary Table 1
+ERTotal	ER-0032	ER_0032	0032	ER+ tumour	GSM4909300	Scientific Data 2022 Supplementary Table 1
+ERTotal	ER-0040-T	ER_0040_T	0040	ER+ tumour	GSM4909307	Scientific Data 2022 Supplementary Table 1
+ERTotal	ER-0042	ER_0042	0042	ER+ tumour	GSM4909301	Scientific Data 2022 Supplementary Table 1
+ERTotal	ER-0043-T	ER_0043_T	0043	ER+ tumour	GSM4909309	Scientific Data 2022 Supplementary Table 1
+ERTotal	ER-0114-T3	ER_0114_T3	0114	ER+ tumour	GSM4909299	Scientific Data 2022 Supplementary Table 1
+ERTotal	ER-0125	ER_0125	0125	ER+ tumour	GSM4909297	Scientific Data 2022 Supplementary Table 1
+ERTotal	ER-0151	ER_0151	0151	ER+ tumour	GSM4909303	Scientific Data 2022 Supplementary Table 1
+ERTotal	ER-0163	ER_0163	0163	ER+ tumour	GSM4909304	Scientific Data 2022 Supplementary Table 1
+ERTotal	ER-0167-T	ER_0167_T	0167	ER+ tumour	GSM4909315	Scientific Data 2022 Supplementary Table 1
+ERTotal	ER-0319	ER_0319	0319	PR+ tumour	GSM4909295	Scientific Data 2022 Supplementary Table 1
+ERTotal	ER-0360	ER_0360	0360	ER+ tumour	GSM4909298	Scientific Data 2022 Supplementary Table 1
+HER2	HER2-0031	HER2_0031	0031	HER2+ tumour	GSM4909291	Scientific Data 2022 Supplementary Table 1
+HER2	HER2-0069	HER2_0069	0069	HER2+ tumour	GSM4909292	Scientific Data 2022 Supplementary Table 1
+HER2	HER2-0161	HER2_0161	0161	HER2+ tumour	GSM4909293	Scientific Data 2022 Supplementary Table 1
+HER2	HER2-0176	HER2_0176	0176	HER2+ tumour	GSM4909294	Scientific Data 2022 Supplementary Table 1
+HER2	HER2-0308	HER2_0308	0308	HER2+ tumour	GSM4909289	Scientific Data 2022 Supplementary Table 1
+HER2	HER2-0337	HER2_0337	0337	HER2+ tumour	GSM4909290	Scientific Data 2022 Supplementary Table 1
+TNBC	TN-0106	TN_0106	0106	Triple negative tumour	GSM4909283	Scientific Data 2022 Supplementary Table 1
+TNBC	TN-0114-T2	TN_0114_T2	0114	Triple negative tumour	GSM4909284	Scientific Data 2022 Supplementary Table 1
+TNBC	TN-0126	TN_0126	0126	Triple negative tumour	GSM4909281	Scientific Data 2022 Supplementary Table 1
+TNBC	TN-0135	TN_0135	0135	Triple negative tumour	GSM4909282	Scientific Data 2022 Supplementary Table 1
+TNBC	TN-B1-0131	TN_B1_0131	0131	Triple negative BRCA1 tumour	GSM4909286	Scientific Data 2022 Supplementary Table 1
+TNBC	TN-B1-0177	TN_B1_0177	0177	Triple negative BRCA1 tumour	GSM4909288	Scientific Data 2022 Supplementary Table 1
+TNBC	TN-B1-0554	TN_B1_0554	0554	Triple negative BRCA1 tumour	GSM4909287	Scientific Data 2022 Supplementary Table 1
+TNBC	TN-B1-4031	TN_B1_4031	4031	Triple negative BRCA1 tumour	GSM4909285	Scientific Data 2022 Supplementary Table 1

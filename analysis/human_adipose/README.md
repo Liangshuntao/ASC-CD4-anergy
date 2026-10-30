@@ -16,9 +16,10 @@ annotations or silently regenerate a different embedding. Original source and
 preprocessing are kept under archive/historical/scripts/human_PRJNA932038.
 The reviewed mapping CSV is available there under steps/step04/attempt_011/tables/.
 
-This covers the previously generated reviewer evidence used for Figure S7; source
-access/reconstruction for the annotated object and preprocessing curation still
-need closure. Dependencies: Seurat, SeuratObject, Matrix, ggplot2, patchwork,
+This covers the previously generated reviewer evidence used for Figure S7. The
+source access route for the annotated object remains a data-availability requirement.
+The staged preprocessing interface is described in PREPROCESSING.md, followed by
+explicit import of the reviewed cluster map. Dependencies: Seurat, SeuratObject, Matrix, ggplot2, patchwork,
 dplyr, scales, digest and yaml. No packages are installed by this script.
 Preflight verifies paths/dependencies, not scientific validity or all object metadata.
 Historical output names are retained to preserve the existing figure/data mapping.

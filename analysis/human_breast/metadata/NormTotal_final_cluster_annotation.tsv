@@ -1,0 +1,9 @@
+cluster	celltype_final	confidence	positive_markers	exclusion_markers	patient_reproducibility	main_evidence	remaining_uncertainty
+0	Luminal progenitor	moderate	EPCAM;KRT19;KRT18;KRT8	stromal;immune;endothelial	13	Author epithelial exclusion plus luminal module comparison	Progenitor versus mature luminal distinction is provisional
+1	Fibroblast	high	DPT;LUM;DCN;COL1A1;COL1A2;PDGFRA;SFRP2;COL3A1	EPCAM/KRT;PTPRC;PECAM1	13	FindMarkers and fibroblast module dominance	None major at broad level
+2	Basal/myoepithelial	moderate	ACTA2;TAGLN;KRT5/KRT14/TP63 review	RGS5/PDGFRB/MYH11 versus basal panel	13	Basal/myoepithelial versus mural module comparison	ACTA2/TAGLN can reflect mural cells; basal markers must be checked
+3	Mature luminal	moderate	KRT8;KRT18;KRT19;EPCAM	stromal;immune;endothelial	13	Author epithelial exclusion plus luminal module comparison	Progenitor versus mature luminal distinction is provisional
+4	Vascular endothelial	high	PLVAP;CLDN5;PECAM1;VWF;ESAM;KDR;EMCN	KRT/EPCAM;PTPRC	13	Endothelial module dominance	ENG/MCAM do not override canonical endothelial program
+5	Mural/pericyte-VSMC	high	RGS5;PDGFRB;TAGLN;MYH11;MCAM;NOTCH3	EPCAM/KRT;PTPRC;PECAM1/VWF	13	Mural module dominance	Potential endothelial overlap is secondary
+6	Immune	high	PTPRC;immune lineage panel	EPCAM/KRT;PECAM1/VWF	13	PTPRC marker and immune module dominance	Fine immune subtype not resolved
+7	Unresolved PTPRC+ENG cluster	low	PTPRC;ENG	lymphatic/endothelial and doublet review	13	PTPRC+ENG mixed boundary; cell-level co-detection required	Do not force lymphatic, immune, or doublet label without cell-level evidence

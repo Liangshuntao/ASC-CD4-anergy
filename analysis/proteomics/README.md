@@ -19,7 +19,8 @@ new data-driven selection. --asc-pathways may specify that original table at
 another location, not an alternative scientific selection.
 
 Stages: original protein/pathway limma models; compartment PCA; ASC pathway plots;
-ASC candidate-module heatmap; CD4 pathway/proliferation plots. Inputs include
+ASC candidate-module heatmap; CD4 pathway/proliferation plots; supplementary
+differential-protein heatmaps and volcano plots. Inputs include
 historical imputed expression, six-sample compartment metadata, protein annotation,
 gene-level expression and original pathway-score matrices. Models retain the
 original factors, contrasts, BH correction and thresholds. No new imputation,

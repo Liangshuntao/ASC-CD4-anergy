@@ -10,6 +10,8 @@
 "proteomics","analysis/proteomics/stages/04_plot_stromal_candidate_modules.R",729,886,TRUE
 "proteomics","analysis/proteomics/stages/05_plot_tcell_pathways_and_proliferation.R",1241,1277,TRUE
 "proteomics","analysis/proteomics/stages/05_plot_tcell_pathways_and_proliferation.R",1279,1426,TRUE
+"proteomics","analysis/proteomics/stages/06_plot_supplementary_differential_proteins.R",208,264,TRUE
+"proteomics","analysis/proteomics/stages/06_plot_supplementary_differential_proteins.R",977,1030,TRUE
 "clinical","analysis/clinical_cohorts/stages/01_score_tcga_cohort.R",44,88,TRUE
 "clinical","analysis/clinical_cohorts/stages/02_analyze_tcga_survival_and_correlations.R",90,361,TRUE
 "clinical","analysis/clinical_cohorts/stages/03_analyze_tcga_pathway_landscape.R",365,427,TRUE

@@ -23,5 +23,6 @@ the interface cleanup as a new scientific validation or independent reanalysis.
 
 The current curation changes explicit input requirements, names and internal
 stage references only. See provenance/mouse_interface_changes.json. No expensive
-single-cell computations were rerun during curation. Final Figure 3 visual changes
-still require reconciliation against the latest manuscript figure.
+single-cell computations were rerun during curation. The current figure mapping
+records the selected LR/BMP/TGF-beta/adenosine panels; typography and composite
+layout edits are not claimed to be reproduced pixel-identically.

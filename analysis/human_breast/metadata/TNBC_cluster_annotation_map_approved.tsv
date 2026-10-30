@@ -1,0 +1,10 @@
+cluster	celltype_final	compartment	candidate_denominator	malignant_status	confidence	marker_evidence	notes
+0	Epithelial/tumor cells	epithelial_tumor	FALSE	Malignant	High	EPCAM;TACSTD2;KRT8;KRT18;KRT19;KRT5;KRT14;KRT15;KRT17;MUC1	Author TNBC.R selects one-based Cluster 1 (Seurat cluster 0) for TNBCTum; marker evidence is concordant.
+1	Cytotoxic T/NK cells	immune	FALSE	Non-malignant	High_broad	CD3D;CD3E;TRAC;CD8A;CD8B;TRDC;NKG7;GNLY;KLRD1;XCL1;XCL2	Mixed cytotoxic T, NK, and gamma-delta T features; do not force CD4/CD8/NK subtypes at the broad-cluster level.
+2	Cycling epithelial/tumor cells	epithelial_tumor	FALSE	Malignant	High	MKI67;TOP2A;UBE2C;BIRC5;CDK1;EPCAM;TACSTD2;KRT5;KRT8;KRT14;KRT17;KRT18	Author TNBC.R selects one-based Cluster 3 (Seurat cluster 2) for TNBCTum; marker evidence is concordant.
+3	Myeloid cells/macrophages	immune	FALSE	Non-malignant	High_broad	LST1;TYROBP;FCER1G;C1QA;C1QB;C1QC;FCN1;CD163;MRC1;SPP1	Contains monocyte/macrophage-state heterogeneity; retain broad annotation unless subclustering is required.
+4	Plasma cells	immune	FALSE	Non-malignant	High	MZB1;JCHAIN;TNFRSF17;DERL3;CD38;IGHG1;IGHG2;IGHG3;IGHA1;IGHA2	Immunoglobulin-rich antibody-secreting cell population.
+5	Cancer-associated fibroblasts	caf	TRUE	Non-malignant	High	COL1A1;COL1A2;COL3A1;DCN;LUM;DPT;PDGFRA;SFRP2;SFRP4;POSTN;LRRC15;COL10A1;COL11A1;MMP11	Activated/myofibroblastic CAF features; the only approved initial denominator for ASC_P-like candidate calling.
+6	B cells	immune	FALSE	Non-malignant	High	MS4A1;CD19;CD22;CD79A;CD79B;PAX5;BANK1;CD37;FCRLA	Conventional B-cell population.
+7	Plasmacytoid dendritic cells	immune	FALSE	Non-malignant	High	CLEC4C;LILRA4;IL3RA;GZMB;TCF4;SPIB;IRF8;PLD4	Canonical pDC transcriptional program.
+8	Vascular endothelial cells	endothelial	FALSE	Non-malignant	High	VWF;PECAM1;CLDN5;EMCN;KDR;ESAM;PLVAP;ACKR1;CDH5	Vascular endothelial population; excluded from ASC_P-like candidate denominator.

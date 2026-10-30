@@ -1,0 +1,12 @@
+cluster	celltype_final	compartment	candidate_denominator	broad_lineage	malignant_status	confidence	mixed_cluster_flag	mapping_source
+0	ER-positive luminal malignant epithelial cells	epithelial	FALSE	Epithelial	Malignant	High	FALSE	ERTotal_formal_cluster_annotation.tsv
+1	Mixed T/NK lymphocytes	immune	FALSE	Immune/Lymphoid	Non-malignant	High for lineage; mixed at subtype level	TRUE	ERTotal_formal_cluster_annotation.tsv
+2	C1Q/TREM2-positive tumor-associated macrophages	immune	FALSE	Immune/Myeloid	Non-malignant	High	FALSE	ERTotal_formal_cluster_annotation.tsv
+3	Matrix-remodeling cancer-associated fibroblasts (CAF)	CAF	TRUE	Stromal	Non-malignant	High	FALSE	ERTotal_formal_cluster_annotation.tsv
+4	Cycling ER-positive malignant epithelial cells	epithelial	FALSE	Epithelial	Malignant	High	FALSE	ERTotal_formal_cluster_annotation.tsv
+5	Luminal progenitor-like normal epithelial cells	epithelial	FALSE	Epithelial	Normal-like / non-malignant candidate	High for epithelial lineage; moderate for subtype and malignant status	FALSE	ERTotal_formal_cluster_annotation.tsv
+6	Basal/myoepithelial-like normal epithelial cells	epithelial	FALSE	Epithelial	Normal-like / non-malignant candidate	High for lineage; moderate for malignant status	FALSE	ERTotal_formal_cluster_annotation.tsv
+7	Pericytes / vascular smooth muscle cells	mural	FALSE	Stromal/Mural	Non-malignant	High	FALSE	ERTotal_formal_cluster_annotation.tsv
+8	Vascular endothelial cells (ACKR1-positive component)	endothelial	FALSE	Stromal/Vascular	Non-malignant	High	FALSE	ERTotal_formal_cluster_annotation.tsv
+9	SPP1-positive osteoclast-like tumor-associated macrophages	immune	FALSE	Immune/Myeloid	Non-malignant	High for myeloid lineage; moderate for osteoclast-like state	FALSE	ERTotal_formal_cluster_annotation.tsv
+10	Plasma cells / antibody-secreting cells	immune	FALSE	Immune/B lineage	Non-malignant	High	FALSE	ERTotal_formal_cluster_annotation.tsv

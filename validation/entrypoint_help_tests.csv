@@ -1,0 +1,10 @@
+"entry","exit_status","usage_displayed","pass"
+"analysis/bulk_rna/run_bulk_analysis.R",0,TRUE,TRUE
+"analysis/bulk_rna/run_bulk_supplement.R",0,TRUE,TRUE
+"analysis/mouse_scrna/run_mouse_analysis.R",0,TRUE,TRUE
+"analysis/human_adipose/run_preprocessing.R",0,TRUE,TRUE
+"analysis/human_adipose/apply_reviewed_annotation.R",0,TRUE,TRUE
+"analysis/human_adipose/plot_asc_like_candidate_evidence.R",0,TRUE,TRUE
+"analysis/human_breast/run_breast_analysis.R",0,TRUE,TRUE
+"analysis/proteomics/run_proteomics_replay.R",0,TRUE,TRUE
+"analysis/clinical_cohorts/run_clinical_analysis.R",0,TRUE,TRUE
