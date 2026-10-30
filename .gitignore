@@ -1,0 +1,13 @@
+*.rds
+*.RDS
+*.RData
+*.rda
+.Rhistory
+.Renviron
+.env
+*.fastq*
+*.bam
+*.bai
+output/
+outputs/
+__pycache__/
