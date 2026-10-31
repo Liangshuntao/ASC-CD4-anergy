@@ -148,12 +148,7 @@ write_tsv(sig_p, "ASC_P_Post_vs_Pre_limma_sig.tsv")
 write_tsv(res_n, "ASC_N_Post_vs_Pre_limma_full.tsv")
 write_tsv(sig_n, "ASC_N_Post_vs_Pre_limma_sig.tsv")
 
-# Exact legacy filenames requested by the revision brief. Their method column
-# explicitly records limma; DESeq2 is not run on fractional normalized values.
-write_tsv(res_p, "ASC_P_Post_vs_Pre_DESeq2_full.tsv")
-write_tsv(sig_p, "ASC_P_Post_vs_Pre_DESeq2_sig.tsv")
-write_tsv(res_n, "ASC_N_Post_vs_Pre_DESeq2_full.tsv")
-write_tsv(sig_n, "ASC_N_Post_vs_Pre_DESeq2_sig.tsv")
+# Only method-correct limma filenames are exported; legacy duplicate aliases omitted.
 
 sets <- list(
   ASC_P_up = res_p$Gene[res_p$direction == "Up"],
@@ -247,52 +242,6 @@ plot_overlap(sets$ASC_P_up, sets$ASC_N_up, sets$shared_up, "Upregulated",
 plot_overlap(sets$ASC_P_down, sets$ASC_N_down, sets$shared_down, "Downregulated",
              "FigS_ASC_P_ASC_N_overlap_down.pdf", "FigS_ASC_P_ASC_N_overlap_down.png")
 
-count_of <- function(category) summary_counts$count[match(category, summary_counts$category)]
-summary_md <- c(
-  "# Reviewer 2 transcriptomic signature summary",
-  "",
-  "## Key results",
-  "",
-  sprintf("- ASC_P Post vs Pre: %d significant DEGs.", count_of("ASC_P_significant_total")),
-  sprintf("- ASC_N Post vs Pre: %d significant DEGs.", count_of("ASC_N_significant_total")),
-  sprintf("- Upregulated: %d shared, %d ASC_P-only, and %d ASC_N-only genes.",
-          count_of("shared_up"), count_of("ASC_P_only_up"), count_of("ASC_N_only_up")),
-  sprintf("- Downregulated: %d shared, %d ASC_P-only, and %d ASC_N-only genes.",
-          count_of("shared_down"), count_of("ASC_P_only_down"), count_of("ASC_N_only_down")),
-  "- Responsive genes were defined as BH FDR < 0.05 and |log2FC| >= 0.5, matching the established Figure 8 threshold.",
-  "- The primary model was unpaired because no donor/subject metadata were available to confirm that replicate suffixes denote matched biological samples.",
-  "",
-  "These complementary contrasts address Reviewer 2's concern by showing the complete transcriptional response to coculture within each ASC subset, while the direction-specific overlap separates common responses from subset-restricted responses. The original difference-in-differences interaction remains the appropriate analysis for ASC_P-specific change beyond the response observed in ASC_N.",
-  "",
-  "## Suggested response-letter citation",
-  "",
-  "We suggest citing the overlap plots as **Figure Sx: Shared and unique transcriptional responses of ASC subsets to coculture** and the workbook/full result tables as **Table Sx: Differential expression results for ASC_P and ASC_N Post-vs-Pre coculture responses**.",
-  "",
-  "## Results insertion",
-  "",
-  sprintf("In addition to the difference-in-differences interaction analysis, we examined the complete coculture response within each ASC subset. ASC_P and ASC_N showed %d and %d significant Post-vs-Pre differentially expressed genes, respectively (BH FDR < 0.05 and |log2FC| >= 0.5). Direction-specific overlap analysis identified %d shared upregulated and %d shared downregulated genes, together with subset-restricted responses (%d ASC_P-only upregulated, %d ASC_N-only upregulated, %d ASC_P-only downregulated, and %d ASC_N-only downregulated genes). These results place the ASC_P-specific interaction signature within the broader shared and subset-specific transcriptional response to coculture.",
-          count_of("ASC_P_significant_total"), count_of("ASC_N_significant_total"),
-          count_of("shared_up"), count_of("shared_down"), count_of("ASC_P_only_up"),
-          count_of("ASC_N_only_up"), count_of("ASC_P_only_down"), count_of("ASC_N_only_down")),
-  "",
-  "## Methods insertion",
-  "",
-  "Normalized read counts were transformed as log2(normalized count + 1), consistent with the original ASC bulk RNA-seq workflow, and analyzed using limma with a 2 x 2 subtype-by-timepoint model. Contrasts tested ASC_P Post versus ASC_P Pre and ASC_N Post versus ASC_N Pre. P values were adjusted by the Benjamini-Hochberg method; responsive genes were defined by FDR < 0.05 and |log2 fold change| >= 0.5. Shared upregulated or downregulated genes met the threshold with concordant direction in both contrasts; subset-only genes met the threshold in one subset but were not significant in the same direction in the other subset. Samples were treated as unpaired because donor/subject identifiers were not available in the project metadata.",
-  "",
-  "## Response letter insertion",
-  "",
-  sprintf("We thank the reviewer for this constructive suggestion. We agree that the difference-in-differences interaction term alone does not display the complete transcriptional response of each ASC subset to coculture. We therefore added separate ASC_P Post-vs-Pre and ASC_N Post-vs-Pre analyses and a direction-specific shared/unique overlap analysis. These analyses identified %d significant DEGs in ASC_P and %d in ASC_N, including %d shared upregulated and %d shared downregulated genes. The overlap plots are provided as Figure Sx, and the full differential-expression results and shared/unique gene sets are provided as Table Sx and the accompanying supplemental files. We retained the original difference-in-differences analysis because it specifically tests the ASC_P-selective interaction response, whereas the new analyses provide the broader context of shared and subset-restricted coculture responses.",
-          count_of("ASC_P_significant_total"), count_of("ASC_N_significant_total"),
-          count_of("shared_up"), count_of("shared_down")),
-  "",
-  "## Method note",
-  "",
-  "The input contains fractional normalized read counts, so DESeq2 was not used. The exact `*_DESeq2_*` filenames requested in the task brief are retained as compatibility aliases, but every table explicitly identifies the method as limma. Canonical `*_limma_*` files are also supplied.",
-  "",
-  "Pathway enrichment was not run for the six overlap gene sets. The existing project uses competitive CAMERA testing on the full expression matrix and a model contrast; applying it directly to post hoc shared/unique gene lists would not answer the requested set-level enrichment question. Introducing an over-representation framework solely for this supplement would violate the instruction to preserve the established enrichment method."
-)
-writeLines(summary_md, file.path(output_dir, "REVIEWER2_TRANSCRIPTOMIC_SIGNATURE_SUMMARY.md"), useBytes = TRUE)
-
 qc_lines <- c(
   paste("genes", nrow(expr_mat), sep = "\t"),
   paste("samples", ncol(expr_mat), sep = "\t"),
@@ -306,62 +255,12 @@ qc_lines <- c(
 writeLines(qc_lines, file.path(output_dir, "analysis_QC_summary.tsv"))
 writeLines(capture.output(sessionInfo()), file.path(output_dir, "R_sessionInfo.txt"))
 
-generated <- sort(list.files(output_dir, full.names = FALSE))
-completion_md <- c(
-  "# Codex completion report",
-  "",
-  "## Scripts inspected",
-  "",
-  "- `20260126 bulk ASC.R`",
-  "- KS template: `KS_bulkRNA_MultiGroup_DEGs.R` and its multi-group demonstration script",
-  "",
-  "## New script",
-  "",
-  "- `scripts/reviewer2_ASC_bulk_post_vs_pre_overlap.R`",
-  "",
-  "## Input",
-  "",
-  "- `20260126 bulk ASC.csv` (9,255 genes; 12 samples; fractional normalized read counts)",
-  "- Sample metadata were inferred from the 12 expression-column names because no separate metadata file was present.",
-  "",
-  "## Analysis decisions",
-  "",
-  "- Method: limma on log2(normalized read count + 1), matching the established Figure 8 workflow.",
-  "- Contrasts: ASC_P Post vs Pre and ASC_N Post vs Pre.",
-  "- Threshold: BH FDR < 0.05 and |log2FC| >= 0.5.",
-  "- Statistical unit: biological sample/replicate column (n = 3 per subtype-timepoint group).",
-  "- Design: unpaired. Suffixes 1-3 suggest possible matching, but no donor/subject metadata confirm pairing; the original Figure 8 limma model is also unpaired.",
-  "- Batch/confounders: none included because no batch metadata were available. PCA QC is reported, but cannot establish absence of batch effects.",
-  "- Multiple testing: Benjamini-Hochberg correction within each contrast.",
-  "- Validation: structural matrix checks, exact sample-set checks, replicate-count checks, full-rank design check, output existence checks, and workbook/figure inspection.",
-  "- Pathway enrichment: skipped for the six overlap sets because the project's CAMERA method is contrast-based and is not directly applicable to post hoc gene-list ORA.",
-  "",
-  "## Generated outputs",
-  "",
-  paste0("- `", generated, "`"),
-  "",
-  "## Warnings and limitations",
-  "",
-  "- DESeq2 is inappropriate for the fractional normalized matrix. Required `*_DESeq2_*` paths are compatibility aliases containing limma results and an explicit `method` column; canonical limma files are supplied.",
-  "- The analysis is based on three replicate columns per group and has no independent validation cohort.",
-  "- Pairing and batch structure should be revisited if donor/subject or experimental-batch metadata become available.",
-  "",
-  "## Exact rerun commands",
-  "",
-  "```powershell",
-  "& 'E:\\R\\R-4.3.3\\bin\\x64\\Rscript.exe' --vanilla 'D:\\R\\20260126 ASC bulk  SCI\\scripts\\reviewer2_ASC_bulk_post_vs_pre_overlap.R' --dry-run",
-  "& 'E:\\R\\R-4.3.3\\bin\\x64\\Rscript.exe' --vanilla 'D:\\R\\20260126 ASC bulk  SCI\\scripts\\reviewer2_ASC_bulk_post_vs_pre_overlap.R'",
-  "```"
-)
-writeLines(completion_md, file.path(output_dir, "CODEX_COMPLETION_REPORT.md"), useBytes = TRUE)
-
 required_outputs <- c(
-  "ASC_P_Post_vs_Pre_DESeq2_full.tsv", "ASC_P_Post_vs_Pre_DESeq2_sig.tsv",
-  "ASC_N_Post_vs_Pre_DESeq2_full.tsv", "ASC_N_Post_vs_Pre_DESeq2_sig.tsv",
+  "ASC_P_Post_vs_Pre_limma_full.tsv", "ASC_P_Post_vs_Pre_limma_sig.tsv",
+  "ASC_N_Post_vs_Pre_limma_full.tsv", "ASC_N_Post_vs_Pre_limma_sig.tsv",
   "ASC_P_ASC_N_shared_unique_gene_sets.xlsx",
   "FigS_ASC_P_ASC_N_overlap_up.pdf", "FigS_ASC_P_ASC_N_overlap_up.png",
-  "FigS_ASC_P_ASC_N_overlap_down.pdf", "FigS_ASC_P_ASC_N_overlap_down.png",
-  "REVIEWER2_TRANSCRIPTOMIC_SIGNATURE_SUMMARY.md", "CODEX_COMPLETION_REPORT.md"
+  "FigS_ASC_P_ASC_N_overlap_down.pdf", "FigS_ASC_P_ASC_N_overlap_down.png"
 )
 missing_outputs <- required_outputs[!file.exists(file.path(output_dir, required_outputs))]
 if (length(missing_outputs)) stop("Missing required outputs: ", paste(missing_outputs, collapse = ", "))

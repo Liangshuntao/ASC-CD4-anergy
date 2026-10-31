@@ -81,7 +81,7 @@ p_scatter_lab <- p_scatter +
   ggrepel::geom_text_repel(
     data = cmp_mech,
     aes(label = Gene),
-    color = "#FF6600",          # ✅ 标记文字红色
+    color = "#FF6600",          # Highlight label color
     size = 3,
     max.overlaps = Inf
   )

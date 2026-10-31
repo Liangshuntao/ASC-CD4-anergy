@@ -455,106 +455,7 @@ if (nrow(sig_enrichment)) {
   warning("No significant Hallmark enrichment results; enrichment figure was not generated")
 }
 
-top_terms <- function(category, n = 3L) {
-  x <- enrichment_results[[category]]
-  x <- x[x$FDR < 0.05 & x$overlap_count > 0, , drop = FALSE]
-  if (!nrow(x)) return("no Hallmark pathways at FDR < 0.05")
-  terms <- head(x$pathway, n)
-  terms <- gsub("^HALLMARK_", "", terms)
-  terms <- tolower(gsub("_", " ", terms))
-  paste(terms, collapse = ", ")
-}
-
-pct_p_response_did <- 100 * length(did_and_p) / length(p_response_genes)
-pct_did_p_response <- 100 * length(did_and_p) / nrow(did_sig)
-response_md <- c(
-  "# Complete response package for Reviewer 2 Comment 6",
-  "",
-  "## What was added",
-  "",
-  "- Submission-ready ASC_P Post-vs-Pre and ASC_N Post-vs-Pre full/significant DEG tables.",
-  "- Direction-specific overlap plots and an exhaustive shared/strict-unique/discordant gene classification.",
-  "- DID-context analysis quantifying how much of the complete ASC_P response is represented by the interaction term.",
-  "- Hallmark over-representation analysis for six shared/strict-unique response categories.",
-  "",
-  "## Key counts",
-  "",
-  sprintf("- ASC_P Post vs Pre: %d significant genes (%d up, %d down).", nrow(sig_p), length(p_up), length(p_down)),
-  sprintf("- ASC_N Post vs Pre: %d significant genes (%d up, %d down).", nrow(sig_n), length(n_up), length(n_down)),
-  sprintf("- Shared concordant responses: %d up and %d down.", length(gene_sets$shared_up), length(gene_sets$shared_down)),
-  sprintf("- Strict subset-only responses (other subset NS): ASC_P %d up/%d down; ASC_N %d up/%d down.",
-          length(gene_sets$ASC_P_only_up), length(gene_sets$ASC_P_only_down), length(gene_sets$ASC_N_only_up), length(gene_sets$ASC_N_only_down)),
-  sprintf("- Discordant responses: %d ASC_P-up/ASC_N-down and %d ASC_P-down/ASC_N-up genes.",
-          length(gene_sets$discordant_P_up_N_down), length(gene_sets$discordant_P_down_N_up)),
-  sprintf("- DID context: %d significant DID genes; %d overlap the ASC_P Post-vs-Pre response. Thus %.1f%% of the complete ASC_P response is also DID-significant, while %.1f%% of DID genes are significant in the ASC_P within-subset response.",
-          nrow(did_sig), length(did_and_p), pct_p_response_did, pct_did_p_response),
-  "",
-  "## Hallmark enrichment highlights",
-  "",
-  paste0("- Shared up: ", top_terms("shared_up"), "."),
-  paste0("- Shared down: ", top_terms("shared_down"), "."),
-  paste0("- ASC_P-only up: ", top_terms("ASC_P_only_up"), "."),
-  paste0("- ASC_P-only down: ", top_terms("ASC_P_only_down"), "."),
-  paste0("- ASC_N-only up: ", top_terms("ASC_N_only_up"), "."),
-  paste0("- ASC_N-only down: ", top_terms("ASC_N_only_down"), "."),
-  "",
-  "## Results insertion",
-  "",
-  sprintf("To place the difference-in-differences interaction signature in the context of the complete coculture response, we additionally analyzed Post versus Pre expression changes within each ASC subset. ASC_P and ASC_N exhibited %d and %d significant differentially expressed genes, respectively (BH FDR < 0.05 and |log2FC| >= 0.5). The two subsets shared %d concordantly upregulated and %d concordantly downregulated genes. Requiring the other subset to be nonsignificant identified %d ASC_P-only upregulated, %d ASC_P-only downregulated, %d ASC_N-only upregulated, and %d ASC_N-only downregulated genes; %d genes showed significant opposite-direction responses. Of %d significant DID genes, %d overlapped the ASC_P within-subset response, corresponding to %.1f%% of all ASC_P-responsive genes. Thus, the DID signature represents a selective component rather than the entirety of the transcriptional response to coculture. Hallmark enrichment further resolved pathway programs shared by both subsets and those restricted to ASC_P or ASC_N (Figure Sy and Table Sv).",
-          nrow(sig_p), nrow(sig_n), length(gene_sets$shared_up), length(gene_sets$shared_down),
-          length(gene_sets$ASC_P_only_up), length(gene_sets$ASC_P_only_down),
-          length(gene_sets$ASC_N_only_up), length(gene_sets$ASC_N_only_down),
-          length(gene_sets$discordant_P_up_N_down) + length(gene_sets$discordant_P_down_N_up),
-          nrow(did_sig), length(did_and_p), pct_p_response_did),
-  "",
-  "## Methods insertion",
-  "",
-  "The supplied fractional normalized read counts were transformed as log2(normalized count + 1) and analyzed with limma using the established unpaired subtype-by-timepoint model. Separate contrasts tested ASC_P Post versus Pre and ASC_N Post versus Pre. P values were adjusted by the Benjamini-Hochberg method, and responsive genes were defined as FDR < 0.05 and |log2FC| >= 0.5. Shared genes were significant in both subsets with concordant direction; strict subset-only genes were significant in one subset while nonsignificant in the other; significant opposite-direction genes were classified separately. Hallmark over-representation was tested with a one-sided Fisher/hypergeometric test using all 9,255 genes tested in both contrasts as the background, followed by BH correction separately within each response category.",
-  "",
-  "## Response-letter insertion",
-  "",
-  sprintf("We thank the reviewer for this important suggestion. We agree that the DID interaction term alone does not show the complete transcriptional response of each ASC subset. We therefore added full ASC_P Post-vs-Pre and ASC_N Post-vs-Pre differential-expression results (Tables Sx and Sy), direction-specific overlap analyses separating shared, strict subset-only, and discordant responses (Figure Sx and Table Sz), and Hallmark enrichment of the shared and subset-specific gene sets (Figure Sy and Table Sv). ASC_P and ASC_N showed %d and %d significant Post-vs-Pre genes, with %d shared upregulated and %d shared downregulated genes. Importantly, only %d of %d ASC_P-responsive genes were also DID-significant (%.1f%%), showing that the interaction signature is a selective component of the broader coculture response. The DID analysis is retained because it specifically identifies ASC_P-selective changes beyond those occurring in ASC_N, while the new analyses provide the complete shared and subset-specific response context requested by the reviewer.",
-          nrow(sig_p), nrow(sig_n), length(gene_sets$shared_up), length(gene_sets$shared_down),
-          length(did_and_p), length(p_response_genes), pct_p_response_did),
-  "",
-  "## Expression-summary note",
-  "",
-  "The project contains fractional normalized counts rather than raw integer counts. Therefore DESeq2 was not used and a DESeq2 `baseMean` cannot be reported. The submission tables provide transparent method-appropriate alternatives: mean normalized count across all six samples in each within-subset contrast, separate Pre and Post mean normalized counts, and limma AveExpr on the log2 scale."
-)
-writeLines(response_md, file.path(output_dir, "REVIEWER2_COMPLETE_RESPONSE_PACKAGE.md"), useBytes = TRUE)
-
-generated <- sort(list.files(output_dir, full.names = FALSE))
-completion <- c(
-  "# Complete Reviewer 2 response analysis: completion report",
-  "",
-  "## Design and inputs",
-  "",
-  "- Input: `20260126 bulk ASC.csv` (fractional normalized counts; 9,255 genes; 12 samples).",
-  "- Statistical unit: sample/replicate column, assumed biological as in the original project; independent donor identity is not documented.",
-  "- Groups: ASC_P Pre/Post and ASC_N Pre/Post, n = 3 per group.",
-  "- Model: existing unpaired limma subtype-by-timepoint model; no batch/donor covariate was available.",
-  "- Threshold: BH FDR < 0.05 and |log2FC| >= 0.5.",
-  "- Enrichment: Mouse-symbol Hallmark ortholog sets via msigdbr; one-sided Fisher/hypergeometric ORA; 9,255 tested genes as universe; BH correction within each of six categories.",
-  "- This is a discovery/revision analysis with no independent validation cohort.",
-  "",
-  "## Important interpretation",
-  "",
-  sprintf("- Strict unique counts exclude %d opposite-direction genes, which are reported separately.", length(gene_sets$discordant_P_up_N_down) + length(gene_sets$discordant_P_down_N_up)),
-  sprintf("- %d/%d (%.1f%%) ASC_P-responsive genes are DID-significant; the DID is a selective subset of the complete response.", length(did_and_p), length(p_response_genes), pct_p_response_did),
-  "- DESeq2 baseMean is unavailable and was not fabricated; method-appropriate normalized-count means and limma AveExpr are provided.",
-  "",
-  "## Generated files",
-  "",
-  paste0("- `", generated, "`"),
-  "",
-  "## Rerun commands",
-  "",
-  "```powershell",
-  "& 'E:\\R\\R-4.3.3\\bin\\x64\\Rscript.exe' --vanilla 'D:\\R\\20260126 ASC bulk  SCI\\scripts\\reviewer2_ASC_bulk_complete_response.R' --dry-run",
-  "& 'E:\\R\\R-4.3.3\\bin\\x64\\Rscript.exe' --vanilla 'D:\\R\\20260126 ASC bulk  SCI\\scripts\\reviewer2_ASC_bulk_complete_response.R'",
-  "```"
-)
-writeLines(completion, file.path(output_dir, "CODEX_COMPLETE_RESPONSE_COMPLETION_REPORT.md"), useBytes = TRUE)
+# Analysis outputs only: response-letter and internal completion reports omitted.
 writeLines(capture.output(sessionInfo()), file.path(output_dir, "R_sessionInfo.txt"))
 
 required_outputs <- c(
@@ -562,8 +463,7 @@ required_outputs <- c(
   "Table_Sz_shared_unique_gene_sets.xlsx", "Table_Sw_DID_context.xlsx",
   "Table_Sv_shared_unique_Hallmark_enrichment.xlsx",
   "FigSx_ASC_P_ASC_N_overlap_up.pdf", "FigSx_ASC_P_ASC_N_overlap_up.png",
-  "FigSx_ASC_P_ASC_N_overlap_down.pdf", "FigSx_ASC_P_ASC_N_overlap_down.png",
-  "REVIEWER2_COMPLETE_RESPONSE_PACKAGE.md", "CODEX_COMPLETE_RESPONSE_COMPLETION_REPORT.md"
+  "FigSx_ASC_P_ASC_N_overlap_down.pdf", "FigSx_ASC_P_ASC_N_overlap_down.png"
 )
 if (nrow(sig_enrichment)) {
   required_outputs <- c(required_outputs, "FigSy_Hallmark_enrichment_shared_unique.pdf", "FigSy_Hallmark_enrichment_shared_unique.png")
@@ -572,6 +472,6 @@ missing_outputs <- required_outputs[!file.exists(file.path(output_dir, required_
 if (length(missing_outputs)) stop("Missing required outputs: ", paste(missing_outputs, collapse = ", "))
 if (any(file.info(file.path(output_dir, required_outputs))$size == 0)) stop("One or more required outputs are empty")
 
-cat("Complete Reviewer 2 response package generated at:\n", output_dir, "\n")
+cat("Response overlap analysis outputs generated at:\n", output_dir, "\n")
 print(summary_counts, row.names = FALSE)
 print(did_context, row.names = FALSE)

@@ -1,11 +1,11 @@
 # Bulk RNA analysis
 
-## Supported source and execution order
+## Model and execution order
 
-The original workflow audit identifies the post-line-155 limma interaction workflow
-as the final model; the first exploratory t-test workflow is excluded. Source
-ranges and permitted interface edits are recorded in provenance/source_blocks.csv.
-All computation expressions in extracted blocks are retained.
+The primary analysis uses a limma linear model with ASC subtype, coculture
+timepoint and their interaction (`~ 0 + subtype * timepoint`). Contrasts compare
+ASC_P with ASC_N before and after coculture and estimate the difference in
+coculture-associated changes between the two subtypes (difference-in-differences).
 
 The runner requires an explicit expression CSV and a new output directory:
 
@@ -26,31 +26,38 @@ Use the supplied fractional normalized counts, not substituted raw integer count
 Statistical unit: sample column, three per subtype/timepoint. The original model
 is unpaired and has no donor or batch covariate; suffixes do not establish pairing.
 The primary design, contrasts, log2(x+1) transformation, median aggregation and
-BH thresholds are unchanged. The existing cell-cycle score enters only the
-separate historical sensitivity model. Never silently substitute it as primary.
+BH thresholds are unchanged. Cell-cycle adjustment is performed as a separate
+sensitivity analysis.
 
 ## Dependencies and outputs
 
 Model: tidyverse, limma, tibble, dplyr. Full plots/sensitivity additionally require
 pheatmap, msigdbr, ggplot2 and ggrepel. Install compatible versions separately;
-environment evidence remains in archive/historical/environment/software_versions.md.
-msigdbr resources must already be available according to that package's requirements;
-the runner is not permission to fetch new reference datasets.
+see [DEPENDENCIES.md](../../DEPENDENCIES.md) for recorded software versions.
+
+Hallmark enrichment uses the MSigDB human Hallmark collection (`H`), mapped to
+mouse gene symbols through `msigdbr(species = "Mus musculus", category = "H")`;
+these are not mouse-native Hallmark sets. The supplementary analysis records
+`msigdbr` 26.1.0 and MSigDB 2026.1. Use the corresponding reference release when
+reproducing those results, since gene-set membership can change between releases.
+
+For offline execution, the required MSigDB and ortholog-mapping resources must
+already be present in the cache used by the installed `msigdbr` version and
+accessible to the R session. Installing the package alone does not ensure that
+these resources are cached. Check that the Hallmark call above succeeds before
+running the enrichment stages. With an empty cache, `msigdbr` may attempt to
+retrieve resources online; the workflow does not bundle the reference cache.
 
 Original output basenames are retained to keep figure/source correspondence.
 Primary tables include ASC_RNA_Pre_P_vs_N_all.csv, ASC_RNA_Post_P_vs_N_all.csv,
 and ASC_RNA_DID_P_specific_change_all.csv. Other stages produce the original
 heatmap, highlighted volcano, CAMERA and sensitivity plot files.
 
-## Current validation boundary
+## Supplementary response analysis
 
-The current source/input reproduces Figure 8A variance (89.26% / 4.42%); an earlier
-audit's 90.64% / 4.43% values are not current evidence. This
-runner does not claim pixel-identical Figure 8 reproduction, and image text/legend edits
-are not treated as computation changes. Reviewer-response scripts and remaining
-modules are still being curated. For reviewer-response analyses, use the separately
-curated run_bulk_supplement.R with --input, --did-table and a new --out directory.
+For the within-subset responses shown in Figure S5, use
+run_bulk_supplement.R with --input, --did-table and a new
+--out directory.
 The --did-table input is ASC_RNA_DID_P_specific_change_all.csv from the primary
 model. Stages run within-subset limma contrasts, overlap/ORA summary, then
-volcano/CAMERA figures. Their calculations are unchanged; runtime comparison of
-the full supplement remains pending. No automatic installation was added.
+volcano/CAMERA figures.

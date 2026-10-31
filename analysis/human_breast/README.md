@@ -15,7 +15,8 @@ SeuratObject_HER2.rds and SeuratObject_TNBC.rds from the original author release
 --normal-object explicitly supplies the originally used annotated normal object;
 --formal-object supplies the reviewed ER-positive seven-cluster T/NK checkpoint.
 These are immutable inputs. Raw author matrices and processed checkpoints are not
-redistributed here; source links are in the original availability documentation.
+redistributed here; source links and unresolved access routes are listed in
+[DATA_ACCESS.md](../../DATA_ACCESS.md).
 
 The runner copies only small reviewed metadata/reference tables into a new output
 workspace, never modifying input objects. It then runs: four cohort candidate
@@ -29,7 +30,5 @@ and plotting calculations remain exactly those in the selected final source.
 PAM50 resemblance is exploratory, not a clinical subtype diagnosis. Cells are not
 treated as biological replicates for patient association tests.
 
-Input/output discovery and internal helper references have been made portable.
-There are no automatic package installations or reference downloads. Dependencies
-are checked explicitly. Large single-cell computations were not rerun solely for
-code cleanup; inspect validation records for the actual extent of testing.
+Dependencies are checked before execution; packages and reference resources are
+not downloaded automatically.

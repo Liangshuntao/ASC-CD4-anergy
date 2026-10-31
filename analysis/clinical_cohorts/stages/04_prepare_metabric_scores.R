@@ -10,7 +10,7 @@ metabric_clin$PAM50_Subtype <- metabric_clin$CLAUDIN_SUBTYPE
 # ------------------------------------------------------------------------------
 # 2. 本地读取表达矩阵 (修复连字符变小数点的问题)
 # ------------------------------------------------------------------------------
-message(">>> 正在读取微阵列芯片表达矩阵 (加上 check.names = FALSE 保持样本名原样)...")
+message("Reading the microarray expression matrix with sample names preserved...")
 # 【核心修复】：末尾加上 check.names = FALSE
 expr_raw <- read.delim(file.path(metabric_dir, "data_mrna_illumina_microarray.txt"), 
                        header = TRUE, stringsAsFactors = FALSE, check.names = FALSE)
@@ -23,7 +23,7 @@ metabric_expr <- as.matrix(expr_raw[, -(1:2)])
 # ------------------------------------------------------------------------------
 # 3. 提取 Luminal B 并清洗生存数据
 # ------------------------------------------------------------------------------
-message(">>> 正在提取 Luminal B 亚型并对齐表达矩阵...")
+message("Selecting Luminal B samples and aligning the expression matrix...")
 metabric_lumb_clin <- metabric_clin %>%
   mutate(
     OS.time = as.numeric(OS_MONTHS),
@@ -34,14 +34,14 @@ metabric_lumb_clin <- metabric_clin %>%
 
 # 这一次，交集就不会是 0 了！
 valid_samples <- intersect(rownames(metabric_lumb_clin), colnames(metabric_expr))
-message(paste(">>> 成功对齐样本数：", length(valid_samples), "例"))
+message(paste("Aligned samples:", length(valid_samples)))
 
 metabric_lumb_clin <- metabric_lumb_clin[valid_samples, ]
 expr_lumb_meta <- as.matrix(metabric_expr[, valid_samples])
 # ------------------------------------------------------------------------------
 # 4. ssGSEA 跨平台打分
 # ------------------------------------------------------------------------------
-message(">>> 正在执行芯片数据的 ssGSEA 打分...")
+message("Calculating ssGSEA scores for the microarray data...")
 meta_genes <- rownames(expr_lumb_meta)
 sig_asc_p_meta <- intersect(c("ENG", "THY1", "NT5E", "PDGFRA", "VCAM1", "MCAM"), meta_genes)
 sig_cd4t_meta <- intersect(c("CD4", "CD3D", "CD3E"), meta_genes)

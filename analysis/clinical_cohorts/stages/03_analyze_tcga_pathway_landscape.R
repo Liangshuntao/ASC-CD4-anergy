@@ -2,7 +2,7 @@
 # SOURCE BEGIN 365:427
 # Figure 3：转录组与通路全景图 (机制篇)
 # ==============================================================================
-message(">>> 正在生成 Figure 3：机制通路全景...")
+message("Generating pathway analysis plots...")
 
 # 3A：GSEA (修正逻辑版：High vs Low)
 group_info <- factor(final_df$ASC_Group, levels = c("ASC_Low", "ASC_High"))
@@ -24,7 +24,7 @@ p_3A
 
 ggsave("Fig 3A GSEA Dotplot.pdf", plot = p_3A, width = 10, height = 10)
 
-# 3B：终极整合热图 (按 Anergy 排序)
+# Pathway heatmap ordered by anergy score
 h_list <- h_df %>% split(x = .$gene_symbol, f = .$gs_name)
 pathway_ssgsea <- gsva(ssgseaParam(expr_matrix[, final_df$barcode], h_list))
 
@@ -62,6 +62,6 @@ pheatmap(plot_mat, annotation_col = annotation_final, annotation_colors = ann_co
          main = "Fig 3B: Integrated Immune Landscape", gaps_col = table(annotation_final$ASC_Group)[1])
 dev.off()
 graphics.off()
-message("🎉 全部优化脚本运行完成！Figure 1, 2, 3 已按顺序保存。")
+message("Pathway analysis plots saved.")
 
 # SOURCE END 365:427

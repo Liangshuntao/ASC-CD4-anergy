@@ -1,36 +1,36 @@
 # Provenance-linked final analysis block; run using run_clinical_analysis.R.
 # SOURCE BEGIN 576:660
-# 模块 4 抢救计划：METABRIC 极值法 + 疾病特异性生存 (DSS) 验证
+# METABRIC disease-specific survival analysis in joint quartile groups
 # ==============================================================================
-message(">>> 启动 METABRIC 高阶洗噪抢救计划...")
+message("Starting METABRIC disease-specific survival analysis...")
 
-# 1. 净化临床终点：从 OS 切换到 DSS (疾病特异性生存)
+# 1. Prepare disease-specific survival variables
 metabric_dss_clin <- metabric_clin %>%
   mutate(
-    # 使用 METABRIC 专属的 DSS 终点
+    # Follow-up time in months
     DSS.time = as.numeric(OS_MONTHS),
-    # 核心修改：只有明确标注 "Died of Disease" 的才算死亡事件(1)，其他(包括死于其他原因)都算截尾(0)
+    # Disease deaths are events; other nonmissing statuses are censored
     DSS.status = ifelse(VITAL_STATUS == "Died of Disease", 1, 0) 
   ) %>%
   filter(grepl("LumB", PAM50_Subtype, ignore.case = TRUE) | grepl("Luminal B", PAM50_Subtype, ignore.case = TRUE)) %>%
   filter(!is.na(DSS.time) & DSS.time > 0)
 
-# 2. 对齐样本 (保持原有打分)
+# 2. Align clinical samples and expression scores
 valid_dss_samples <- intersect(rownames(metabric_dss_clin), colnames(metabric_expr))
 metabric_dss_clin <- metabric_dss_clin[valid_dss_samples, ]
 
-# 将刚才算好的 ssGSEA 分数贴过来
+# Attach the previously computed ssGSEA scores
 metabric_dss_clin$ASC_Score <- as.numeric(meta_gsva["ASC_P", valid_dss_samples])
 metabric_dss_clin$CD4_Score <- as.numeric(meta_gsva["CD4T", valid_dss_samples])
 
-# 3. 极值对比策略：提取上下 25% 的极端样本
+# 3. Define the upper and lower score quartiles
 q75_asc <- quantile(metabric_dss_clin$ASC_Score, 0.75, na.rm=TRUE)
 q25_asc <- quantile(metabric_dss_clin$ASC_Score, 0.25, na.rm=TRUE)
 q75_cd4 <- quantile(metabric_dss_clin$CD4_Score, 0.75, na.rm=TRUE)
 q25_cd4 <- quantile(metabric_dss_clin$CD4_Score, 0.25, na.rm=TRUE)
 
 metabric_extreme <- metabric_dss_clin %>%
-  # 滤掉中间 50% 的模糊噪音样本
+  # Retain samples in the upper or lower quartile of both scores
   filter((ASC_Score >= q75_asc | ASC_Score <= q25_asc) & 
            (CD4_Score >= q75_cd4 | CD4_Score <= q25_cd4)) %>%
   mutate(
@@ -39,7 +39,7 @@ metabric_extreme <- metabric_dss_clin %>%
     Combined_Group = paste0(ASC_Group, " / ", CD4_Group)
   )
 
-# 4. 重新绘制生存曲线 (基于 DSS)
+# 4. Plot disease-specific survival curves
 graphics.off()
 fit_extreme <- survfit(Surv(DSS.time, DSS.status) ~ Combined_Group, data = metabric_extreme)
 
@@ -53,30 +53,30 @@ pdf("Fig_4A_METABRIC_Rescue_DSS.pdf", width = 12, height = 8)
 print(p_4A_Rescue)
 dev.off()
 
-message("🎉 抢救分析完成！请打开 Fig_4A_METABRIC_Rescue_DSS.pdf 查看曲线是否分开！")
+message("Survival curves saved: Fig_4A_METABRIC_Rescue_DSS.pdf")
 
 
 # ==============================================================================
-# 模块 4B 抢救计划：基于 DSS 和极值亚组的 Cox 森林图重新绘制
+# Cox model for disease-specific survival in the joint quartile subset
 # ==============================================================================
-message(">>> 正在基于净化的 DSS 极值队列重新计算 Cox 风险并绘制 Fig 4B...")
+message("Fitting the METABRIC Cox model and generating the forest plot...")
 
 library(survival)
 library(survminer)
 
-# 1. 确保使用抢救后的数据子集 (metabric_extreme)
-# 设定因子，并将生物学上预后最好的一组 (低基质陷阱 + 高 T 细胞) 设为基准线 (Reference)
+# 1. Use the joint quartile subset (metabric_extreme)
+# Set ASC_Low / CD4_High as the reference group
 metabric_extreme$Combined_Group <- factor(metabric_extreme$Combined_Group)
 metabric_extreme$Combined_Group <- relevel(metabric_extreme$Combined_Group, ref = "ASC_Low / CD4_High")
 
-# 2. 核心修改：使用 DSS.time 和 DSS.status 构建新的 Cox 模型
+# 2. Fit the Cox model using DSS.time and DSS.status
 cox_extreme <- coxph(Surv(DSS.time, DSS.status) ~ Combined_Group, data = metabric_extreme)
 
-# 3. 绘制最新的森林图
+# 3. Generate the forest plot
 p_4B_Rescue <- ggforest(cox_extreme, data = metabric_extreme, 
                         main = "Fig 4B Rescue: METABRIC DSS Hazard Ratio (Top/Bottom 25%)")
 
-# 4. 打印并安全保存
+# 4. Display and save the plot
 print(p_4B_Rescue)
 
 ggsave("Fig_4B_METABRIC_Rescue_DSS_Forest.pdf", 
@@ -84,6 +84,6 @@ ggsave("Fig_4B_METABRIC_Rescue_DSS_Forest.pdf",
        width = 10, 
        height = 7)
 
-message("🎉 Fig 4B 重绘完成！请查看文件夹中的 Fig_4B_METABRIC_Rescue_DSS_Forest.pdf")
+message("Forest plot saved: Fig_4B_METABRIC_Rescue_DSS_Forest.pdf")
 
 # SOURCE END 576:660

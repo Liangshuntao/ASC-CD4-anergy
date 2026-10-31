@@ -1,55 +1,66 @@
-# ASC CD4 T cell analysis code
+# ASC–CD4 anergy: analysis code
 
-Curated analysis interfaces for the ASC–CD4 T-cell study. Start under `analysis/`;
-do not execute the historical archive as a single pipeline.
+Analysis and plotting code accompanying the manuscript:
 
-| Analysis | Recommended entry | Instructions |
+**Perivascular-like CD105⁺CD90⁺ adipose stromal cells promote anergy-like CD4⁺ T-cell hyporesponsiveness**
+
+The repository includes mouse and human single-cell analyses, bulk RNA-seq and
+proteomic analyses, and breast cancer cohort analyses. The scripts support the
+computational analyses in Figures 1–4 and 8–14 and Supplementary Figures S1–S3
+and S5–S9, as detailed below. Coverage is panel-specific.
+
+| Workflow | Entry | Figures |
 |---|---|---|
-| Mouse single-cell | `analysis/mouse_scrna/run_mouse_analysis.R` | [Mouse workflow](analysis/mouse_scrna/README.md) |
-| Bulk primary and sensitivity | `analysis/bulk_rna/run_bulk_analysis.R` | [Bulk workflow](analysis/bulk_rna/README.md) |
-| Bulk within-subset responses | `analysis/bulk_rna/run_bulk_supplement.R` | [Bulk workflow](analysis/bulk_rna/README.md) |
-| Human adipose preprocessing | `analysis/human_adipose/run_preprocessing.R` | [Preprocessing](analysis/human_adipose/PREPROCESSING.md) |
-| Human adipose evidence figure | `analysis/human_adipose/plot_asc_like_candidate_evidence.R` | [Figure replay](analysis/human_adipose/README.md) |
-| Human breast cohorts | `analysis/human_breast/run_breast_analysis.R` | [Breast workflow](analysis/human_breast/README.md) |
-| Proteomic checkpoint replay | `analysis/proteomics/run_proteomics_replay.R` | [Proteomic workflow](analysis/proteomics/README.md) |
-| TCGA and METABRIC | `analysis/clinical_cohorts/run_clinical_analysis.R` | [Clinical workflow](analysis/clinical_cohorts/README.md) |
+| Mouse single-cell | analysis/mouse_scrna/run_mouse_analysis.R | 1–3, S1–S3 |
+| Baseline stromal identity | analysis/bulk_rna/plot_baseline_stromal_identity.R | 4C–D |
+| Bulk RNA-seq | analysis/bulk_rna/run_bulk_analysis.R | 8 |
+| Bulk response context | analysis/bulk_rna/run_bulk_supplement.R | S5 |
+| Proteomics | analysis/proteomics/run_proteomics_replay.R | 9, S6 |
+| Human breast | analysis/human_breast/run_breast_analysis.R | 10, 13, S8, S9 |
+| Human adipose | analysis/human_adipose/plot_asc_like_candidate_evidence.R | S7 |
+| Clinical cohorts | analysis/clinical_cohorts/run_clinical_analysis.R | 11, 12, 14 |
 
-Each entry supports `--help`. Supply input/output paths explicitly and use a new
-output directory. Packages are checked, not installed. Manual annotations and
-checkpoint review are explicit inputs, not inferred anew. Read
-[DEPENDENCIES.md](DEPENDENCIES.md) and [DATA_ACCESS.md](DATA_ACCESS.md).
+Read each module README for execution order. Entries support --help. Example:
 
-## Source and figures
+```sh
+Rscript --vanilla analysis/bulk_rna/run_bulk_analysis.R --input /path/to/expression.csv --out /path/to/new_output --stage all
+```
 
-[Figure_script_mapping.csv](Figure_script_mapping.csv) maps all 14 main and 10
-supplementary figures to workflows or identifies experimental/manual panels.
-Manuscript panels may be selected and assembled from combined original plots.
+Inputs and outputs must be explicit. Packages are checked, not automatically
+installed. See [DEPENDENCIES.md](DEPENDENCIES.md) and
+[DATA_ACCESS.md](DATA_ACCESS.md). Human adipose preprocessing is described in
+analysis/human_adipose/PREPROCESSING.md.
 
-[archive/historical](archive/historical) preserves original source bytes,
-including exploratory and superseded code. Those files are NOT recommended
-execution entries. The initial bulk t-test is excluded from the curated primary
-limma workflow; the final METABRIC DSS branch replaces the earlier OS branch as
-the recommended source. `provenance/` records source blocks and interface edits.
+## Figure correspondence
 
-## Validation and limits
+[Figure_script_mapping.csv](Figure_script_mapping.csv) records checked panel
+relationships and remaining verification limits. Historical output basenames
+are not authoritative final panel IDs.
+Composite arrangement, selected subplots and typography may be manual.
+Figure 4C–D uses a separate baseline dataset and the entry
+`analysis/bulk_rna/plot_baseline_stromal_identity.R`; see its
+[input and historical-method notes](analysis/bulk_rna/BASELINE_IDENTITY.md).
+Other Figure 4 panels, Figures 5–7, S4, S10, the graphical abstract and Figure 9D
+are not claimed as R-generated experimental or schematic outputs.
 
-Seven bulk/proteomic result tables matched stored historical numeric results
-exactly. Bulk PCA variance also matches the current manuscript. Source-transform,
-syntax, entry-point, path and annotation-import checks are in `validation/`.
+## Testing scope
 
-These checks do not establish full raw-data-to-paper reproducibility. Large
-single-cell and clinical analyses were not completely rerun. Reviewed annotations,
-processed checkpoints and original reference versions remain required. Proteomic
-replay avoids a new random MinProb imputation. See
-[CURATION_STATUS.md](CURATION_STATUS.md) for exact validation scope.
+Scripts were checked for R syntax and entry-point help. Selected bulk RNA,
+proteomic and figure-source tables were compared with saved results. The full
+single-cell and clinical workflows were not rerun end to end. Required inputs
+and their availability are listed in [DATA_ACCESS.md](DATA_ACCESS.md).
 
-The score historically called TIDE is a custom expression-derived composite,
-not official TIDE. Its median labels are not validated treatment-response
-predictions. Original variable/output names remain for traceability; manuscript
-terminology must be reconciled separately.
+## Citation
+
+If you use this code in your research, please cite the associated publication.
+
+## Contact
+
+Shuntao Liang — [lstswjs@163.com](mailto:lstswjs@163.com).
 
 ## Licensing
 
-No open-source licence is assigned pending author/institution confirmation.
-Third-party tools/reference resources retain their original licences/attribution.
-Raw sequencing data and large expression/checkpoint objects are not redistributed.
+The study-specific code is released under the [MIT License](LICENSE).
+The [Figure 4C–D source data](data/figure4_baseline/README.md) are licensed under
+CC BY 4.0.
+Third-party tools and reference resources retain their own licensing terms.

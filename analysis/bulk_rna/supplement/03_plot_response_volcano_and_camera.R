@@ -322,51 +322,12 @@ write.table(camera_p, file.path(output_dir, "Table_St_ASC_P_Hallmark_CAMERA.tsv"
 write.table(camera_n, file.path(output_dir, "Table_St_ASC_N_Hallmark_CAMERA.tsv"), sep = "\t", quote = FALSE, row.names = FALSE)
 write.table(camera_compare, file.path(output_dir, "Table_St_ASC_P_ASC_N_Hallmark_CAMERA_comparison.tsv"), sep = "\t", quote = FALSE, row.names = FALSE)
 
-top_shared <- shared_camera
-top_shared <- top_shared[order(top_shared$min_FDR), , drop = FALSE]
-top_shared_names <- head(gsub("_", " ", sub("^HALLMARK_", "", top_shared$Pathway)), 8)
-report <- c(
-  "# ASC Post-vs-Pre volcano and CAMERA run report",
-  "",
-  "## Analysis",
-  "",
-  sprintf("- ASC_P Post vs Pre: %d significant genes (%d up; %d down).", actual_counts[["ASC_P"]], sum(deg_p$direction == "Up"), sum(deg_p$direction == "Down")),
-  sprintf("- ASC_N Post vs Pre: %d significant genes (%d up; %d down).", actual_counts[["ASC_N"]], sum(deg_n$direction == "Up"), sum(deg_n$direction == "Down")),
-  sprintf("- CAMERA significant pathways: ASC_P %d; ASC_N %d.", sum(camera_p$FDR < 0.05), sum(camera_n$FDR < 0.05)),
-  paste0("- Pathway classification: ", paste(paste0(camera_summary$classification, "=", camera_summary$pathway_count), collapse = "; "), "."),
-  paste0("- Top shared same-direction Hallmarks: ", if (length(top_shared_names)) paste(top_shared_names, collapse = ", ") else "none at FDR < 0.05", "."),
-  "",
-  "## Statistical notes",
-  "",
-  "- Biological/statistical unit: sample/replicate column, assumed biological as in the existing project; donor identity is not documented.",
-  "- Model: established unpaired limma subtype-by-timepoint model; no batch/donor covariate was available.",
-  "- DEG threshold: BH FDR < 0.05 and |log2FC| >= 0.5.",
-  "- CAMERA uses the full ranked expression evidence and is complementary to the shared/unique DEG-list ORA already provided.",
-  "",
-  "## Outputs",
-  "",
-  "- Figure SxA: ASC_P Post-vs-Pre volcano.",
-  "- Figure SxB: ASC_N Post-vs-Pre volcano.",
-  "- Figure SxE: two-contrast Hallmark CAMERA heatmap.",
-  "- Figure SxF: Hallmark pathways significant in both subsets with the same direction.",
-  "- Table St: complete CAMERA results and pathway classification.",
-  "",
-  "## Rerun commands",
-  "",
-  "```powershell",
-  "& 'E:\\R\\R-4.3.3\\bin\\x64\\Rscript.exe' --vanilla 'D:\\R\\20260126 ASC bulk  SCI\\scripts\\reviewer2_ASC_bulk_volcano_CAMERA.R' --dry-run",
-  "& 'E:\\R\\R-4.3.3\\bin\\x64\\Rscript.exe' --vanilla 'D:\\R\\20260126 ASC bulk  SCI\\scripts\\reviewer2_ASC_bulk_volcano_CAMERA.R'",
-  "```"
-)
-writeLines(report, file.path(output_dir, "ASC_POST_PRE_VOLCANO_CAMERA_RUN_REPORT.md"), useBytes = TRUE)
-
 required_outputs <- c(
   "FigSxA_ASC_P_Post_vs_Pre_volcano.pdf", "FigSxA_ASC_P_Post_vs_Pre_volcano.png",
   "FigSxB_ASC_N_Post_vs_Pre_volcano.pdf", "FigSxB_ASC_N_Post_vs_Pre_volcano.png",
   "FigSxE_ASC_P_ASC_N_Hallmark_CAMERA_comparison.pdf", "FigSxE_ASC_P_ASC_N_Hallmark_CAMERA_comparison.png",
   "Table_St_ASC_P_ASC_N_Hallmark_CAMERA.xlsx", "Table_St_ASC_P_Hallmark_CAMERA.tsv",
-  "Table_St_ASC_N_Hallmark_CAMERA.tsv", "Table_St_ASC_P_ASC_N_Hallmark_CAMERA_comparison.tsv",
-  "ASC_POST_PRE_VOLCANO_CAMERA_RUN_REPORT.md"
+  "Table_St_ASC_N_Hallmark_CAMERA.tsv", "Table_St_ASC_P_ASC_N_Hallmark_CAMERA_comparison.tsv"
 )
 if (nrow(shared_camera)) {
   required_outputs <- c(required_outputs, "FigSxF_Shared_Hallmark_CAMERA.pdf", "FigSxF_Shared_Hallmark_CAMERA.png")

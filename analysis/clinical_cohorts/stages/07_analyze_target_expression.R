@@ -2,7 +2,7 @@
 # SOURCE BEGIN 744:794
 # 模块 6：核心药物靶点与耐药特征分析 (Figure 6)
 # ==============================================================================
-message(">>> 正在分析 ASC_P 相关亚群的药物靶点图谱...")
+message("Generating target-expression profiles for ASC_P-associated groups...")
 
 library(ggpubr)
 library(patchwork)
@@ -50,6 +50,6 @@ fig6_final
 
 ggsave("Figure_6_Target_Vulnerability_Final.pdf", plot = fig6_final, width = 21.33, height = 6)
 
-message("🎉 Figure 6 已生成：Figure_6_Target_Vulnerability_Final.pdf")
+message("Target-expression plots saved: Figure_6_Target_Vulnerability_Final.pdf")
 
 # SOURCE END 744:794

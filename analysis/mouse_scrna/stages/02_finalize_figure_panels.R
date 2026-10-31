@@ -802,5 +802,77 @@ for (f in sort(pdf_files)) {
 write.csv(panel_info, "panel_validation.csv", row.names=FALSE)
 message("[STRICT] panel_validation.csv written with ", nrow(panel_info), " entries")
 
+# Figure 2H: recovered original state-pathway correlation block.
+# Source: D:/R/20250926/20250926.R, beginning at line 2061.
+# Keep historical Spearman pairwise correlation and row-scaled heatmap.
+score_cols_all <- grep("_(AUCell|ssGSEA|MSCORE|GSVA)$",
+                       colnames(seu_cd4_nonTreg@meta.data), value = TRUE)
+keep_prefix <- c("ANERGY", "ACT", "EXH")
+pattern <- paste0("^(", paste(keep_prefix, collapse = "|"), ")")
+score_cols <- score_cols_all[grepl(pattern, score_cols_all)]
+pw_cols <- grep("_PROGENY$", colnames(seu_cd4_nonTreg@meta.data), value = TRUE)
+df_cor <- seu_cd4_nonTreg@meta.data[, c(score_cols, pw_cols), drop = FALSE]
+df_cor <- as.data.frame(df_cor)
+
+# 如果有非数值列（factor/character），先剔除掉
+is_num <- vapply(df_cor, is.numeric, logical(1))
+df_cor <- df_cor[, is_num, drop = FALSE]
+
+
+# 5) Spearman 相关，使用 pairwise.complete.obs
+cor_mat <- cor(df_cor, method = "spearman", use = "pairwise.complete.obs")
+
+# 6) 只取 “状态分数 vs 通路”的子矩阵
+rows <- intersect(score_cols, rownames(cor_mat))
+cols <- intersect(pw_cols,  colnames(cor_mat))
+
+sub_cor <- cor_mat[rows, cols, drop = FALSE]
+
+# 7) 去掉全是 NA/NaN/Inf 的行/列
+finite_mask_row <- rowSums(is.finite(sub_cor)) > 0
+finite_mask_col <- colSums(is.finite(sub_cor)) > 0
+sub_cor <- sub_cor[finite_mask_row, finite_mask_col, drop = FALSE]
+
+# 8) 如果还有零星 NA/NaN/Inf，用 0 填（或行/列均值，自行替换）
+sub_cor[!is.finite(sub_cor)] <- 0
+
+rownames(sub_cor)
+
+# 想要的行顺序
+row_order <- c(
+  "ANERGY_ssGSEA", "ANERGY_GSVA", "ANERGY_AUCell", "ANERGY_MSCORE",
+  "ACT_ssGSEA",    "ACT_GSVA",    "ACT_AUCell",    "ACT_MSCORE",
+  "EXH_ssGSEA",    "EXH_GSVA",    "EXH_AUCell",    "EXH_MSCORE"
+)
+
+# 按给定顺序重排行（并保证这些行确实存在）
+row_order_use <- row_order[row_order %in% rownames(sub_cor)]
+
+sub_cor <- sub_cor[row_order_use, , drop = FALSE]
+
+sub_cor_pheatmap=pheatmap(sub_cor,
+                             cluster_rows = F,   # 聚类行
+                             cluster_cols = TRUE,   # 聚类列
+                             show_rownames = TRUE,  # 显示行名（基因集）
+                             show_colnames = T, # 不显示列名（细胞）
+                             angle_col     = 45,
+                             cellwidth = 18,     # 设定cell 的大小
+                             cellheight = 18,      # 设定cell 的大小
+                             scale = "row",         # 对行进行标准化
+                             treeheight_col = 0,
+                              border_color   =  "white",
+                             color = colorRampPalette(c("#4675B5",  "white", "red"))(50),  # 色标设置
+                             fontsize = 8)         # 字体大小
+sub_cor_pheatmap
+
+ggsave("sub_cor_pheatmap.pdf", 
+       plot = sub_cor_pheatmap,
+       width = 20, height = 12, dpi = 600)
+
+sub_cor
+saveRDS(sub_cor, file="sub_cor.rds") ####保存分析后的数据，方便下次直接读取。
+
+write.csv(sub_cor, "CD4_PROGENy_vs_state_ANERGY_ACT_EXH_scores_correlation.csv", row.names = FALSE)
+
 setwd(oldwd)
 message("[STRICT] ===== STRICT REPRODUCTION SCRIPT COMPLETE =====")

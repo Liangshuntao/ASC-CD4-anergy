@@ -3,7 +3,7 @@
 # ==============================================================================
 # Figure 1：临床预后与交互分析 (现象篇)
 # ==============================================================================
-message(">>> 正在生成 Figure 1：临床分析...")
+message("Generating clinical analysis plots...")
 
 # ------------------------------------------------------------------------------
 # 准备步骤：生成包含所有亚型的数据框 (用于 1A-1D)
@@ -19,7 +19,7 @@ run_subgroup_km <- function(data, subtype_name) {
   sub_df <- data %>% dplyr::filter(BRCA_Subtype_PAM50 == subtype_name)
   
   if(nrow(sub_df) < 20) {
-    message(paste("跳过", subtype_name, "：样本量太少"))
+    message(paste("Skipping", subtype_name, ": insufficient samples"))
     return(NULL)
   }
   
@@ -34,7 +34,7 @@ run_subgroup_km <- function(data, subtype_name) {
   
   # 4. 确保有足够的死亡事件进行统计
   if(sum(sub_extreme$OS.status) < 3) {
-    message(paste("跳过", subtype_name, "：死亡事件不足"))
+    message(paste("Skipping", subtype_name, ": insufficient death events"))
     return(NULL)
   }
   
@@ -62,7 +62,7 @@ for(st in subtypes) {
     # 提取 ggplot 对象，统一将图例放顶部以方便拼图
     p_ggplot <- p_obj$plot + theme(legend.position = "top")
     plot_list_final[[st]] <- p_ggplot
-    message(paste("✅ 成功生成亚型曲线：", st))
+    message(paste("Survival curves generated for subtype:", st))
   }
 }
 
@@ -83,12 +83,12 @@ ggsave("Fig 1A-D Subtypes KM.pdf",
        width = 10, 
        height = 10, 
        device = "pdf")
-message("🎉 Fig 1A-D 已成功合成并保存！")
+message("Survival curve panels saved.")
 
 # ------------------------------------------------------------------------------
 # 1E：LumB 交互生存分析 (使用只包含 LumB 的 final_df)
 # ------------------------------------------------------------------------------
-message(">>> 正在生成 Fig 1E: 交互分析...")
+message("Generating joint-group survival curves...")
 
 fit_combined <- survfit(Surv(OS.time, OS.status) ~ Combined_Group, data = final_df)
 p_1E <- ggsurvplot(fit_combined, data = final_df, pval = TRUE, palette = "jco",
@@ -99,14 +99,14 @@ print(p_1E)
 pdf("Fig 1E Interaction KM.pdf", width = 12, height = 8)
 print(p_1E)
 dev.off()
-message("🎉 Fig 1E 交互生存图已保存！")
+message("Joint-group survival plot saved.")
 
 
 
 # ------------------------------------------------------------------------------
 # 1F：Cox 回归森林图
 # ------------------------------------------------------------------------------
-message(">>> 正在生成 Fig 1F: Cox 森林图...")
+message("Generating the Cox model forest plot...")
 
 final_df$Combined_Group <- factor(final_df$Combined_Group)
 final_df$Combined_Group <- relevel(final_df$Combined_Group, ref = "ASC_Low / CD4_High")
@@ -116,12 +116,12 @@ p_1F <- ggforest(cox_model, data = final_df, main = "Fig 1F: Hazard Ratio for In
 print(p_1F)
 
 ggsave("Fig 1F Cox Forest.pdf", plot = p_1F, width = 10, height = 7)
-message("🎉 Fig 1F 森林图已保存！")
+message("Cox model forest plot saved.")
 
 # ==============================================================================
 # Figure 2：细胞互作相关性分析 (互作篇)
 # ==============================================================================
-message(">>> 正在生成 Figure 2：细胞互作散点图...")
+message("Generating cell-score correlation plots...")
 
 # 2A：ASC_P vs Anergy (红色系，代表功能废黜风险)
 p_2A <- ggscatter(final_df, x = "ASC_P_6", y = "CD4T_Anergy", 
@@ -202,7 +202,7 @@ ggsave("Fig_2D_Infiltration_vs_Anergy.pdf",
 # ==============================================================================
 # 补充模块：Fig 2E - ASC_P 与 CD4T Exhaustion (耗竭) 的相关性分析
 # ==============================================================================
-message(">>> 正在生成 Fig 2E: CD4T 耗竭相关性散点图...")
+message("Generating the CD4 T-cell exhaustion correlation plot...")
 
 library(ggpubr)
 library(cowplot)
@@ -228,7 +228,7 @@ ggsave("Fig_2E_ASC_P_vs_Exhaustion.pdf",
 # ==============================================================================
 # 补充模块：Fig 2F - Anergy (失能) 与 Exhaustion (耗竭) 的内在相关性
 # ==============================================================================
-message(">>> 正在生成 Fig 2F: Anergy vs. Exhaustion 相关性散点图...")
+message("Generating the anergy versus exhaustion correlation plot...")
 
 library(ggpubr)
 
@@ -252,7 +252,7 @@ ggsave("Fig_2F_Anergy_vs_Exhaustion.pdf",
        height = 5, 
        device = "pdf")
 
-message("🎉 Fig 2F (Anergy vs. Exhaustion) 已成功保存！")
+message("Anergy versus exhaustion correlation plot saved.")
 
 
 
@@ -271,6 +271,6 @@ ggsave("Fig 2ABCD Cellular Interaction_Premium.pdf",
        height = 10, 
        device = "pdf")
 
-message("🎉 Fig 2 (A-D) 精装版细胞互作拼图已保存！")
+message("Cell-score correlation panels saved.")
 
 # SOURCE END 90:361

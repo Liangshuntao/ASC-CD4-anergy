@@ -20,7 +20,7 @@ if (!all(file.exists(required_objects))) stop("Missing one or more of the four a
 root <- dirname(normalizePath(sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)), mustWork = TRUE))
 metadata <- list.files(file.path(root, "metadata"), pattern = "\\.tsv$", full.names = TRUE)
 if (length(metadata) != 7L) stop("Expected seven reviewed metadata/reference tables")
-deps <- c("Seurat", "SeuratObject", "Matrix", "GSVA", "ggplot2", "patchwork", "scales", "digest", "jsonlite", "ggtext", "png", "grid")
+deps <- c("Seurat", "SeuratObject", "Matrix", "GSVA", "ggplot2", "patchwork", "scales", "digest", "jsonlite", "ggtext", "png", "grid", "ragg")
 missing <- deps[!vapply(deps, requireNamespace, logical(1), quietly = TRUE)]
 if (length(missing)) stop("Install dependencies separately: ", paste(missing, collapse = ", "))
 scripts <- c("01_plot_normal_breast_candidates.R", "02_plot_er_positive_candidates.R",

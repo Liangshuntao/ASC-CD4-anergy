@@ -1,10 +1,9 @@
 # PRJNA932038 preprocessing and reviewed annotation
 
-The source chain for the final annotated object is the original staged workflow
-(step_01/02/03 and reviewed Step04 mapping), not the separate exploratory SIMPLE
-scDblFinder script. The latter remains historical only. Original config is archived;
-seed, sample mapping, QC formulas, Harmony dimensions and locked resolution 0.4
-are unchanged. Human review remains explicit, and no approval file is generated.
+The workflow reads Cell Ranger count matrices, performs sample-wise quality
+control and doublet filtering, and integrates samples with Harmony. Final cell
+identities are assigned using the supplied manually reviewed cluster-to-cell-type
+mapping, rather than inferred automatically.
 
 Run one stage at a time, using a new output directory each time:
 
@@ -21,30 +20,44 @@ QC settings are in config/preprocessing_parameters.R. Cell Ranger inputs were
 generated with v10.1.0, GRCh38-2024-A and intronic reads included. The R runner
 does not download reads, run Cell Ranger or install any dependencies.
 
-QC/doublet filtering is sample-wise. Integration retains the original candidate
-resolution grid for audit and the previously selected 0.4 cluster assignment.
---reviewed-input acknowledges review of the supplied checkpoint; the runner does
-not bypass or modify the original project's approval chain. It is a publication
-replay interface, not a controller for the historical gated project.
+## Parameters and input checks
 
-Final cell identities are reviewed external annotation inputs, not automatically
-inferred by the runner. The figure-replay script independently applies and checks
-the reviewed cluster map. Use the final annotated checkpoint for exact figure
-replay. Recreating manual annotation from the clustered object uses the supplied
-mapping only; the annotation's biological validity is a PI decision. Original
-marker/SingleR exploratory aids remain in the historical archive and are not
-silently promoted to final labels.
+| Argument | Meaning |
+|---|---|
+| `--stage read` | Read the six Cell Ranger count-matrix folders. |
+| `--stage qc` | Apply sample-wise QC and doublet filtering to the preceding checkpoint. |
+| `--stage integrate` | Integrate QC-filtered cells and generate clustering outputs. |
+| `--counts-dir` | Parent directory containing the six sample folders; required for `read`. |
+| `--previous` | RDS checkpoint from the preceding stage; required for `qc` and `integrate`. |
+| `--reviewed-input` | Confirm that the preceding checkpoint and its QC summaries have been inspected; required for `qc` and `integrate`. This flag does not perform QC review. |
+| `--out` | New or empty output directory, separate from the input location. |
+| `--preflight` | Check required paths and packages without reading count matrices or running the analysis. |
 
-To import that exact mapping into the clustered checkpoint:
+The configuration sets the random seed to 1234, uses dimensions 1–30 for
+integration, and groups samples by `sample_id` for Harmony correction. The
+selected global and stromal clustering resolutions are both 0.4. Sample labels
+and QC thresholds are specified in `config/preprocessing_parameters.R`.
+
+## Manual annotation
+
+Inspect cluster markers before applying cell-type labels. The supplied mapping
+records the manual annotations used for the study; it should only be applied to
+the corresponding clustering output. Import it with:
 
 ```
 Rscript analysis/human_adipose/apply_reviewed_annotation.R --input /path/integration_output/objects/PRJNA932038_global_harmony_clustered.rds --map analysis/human_adipose/metadata/reviewed_cluster_map.csv --reviewed-map --out /path/new_annotated.rds
 ```
 
-The utility imports only the two reviewed label columns and requires an exact
-cluster-count match; it does not alter assays, embeddings or cluster assignments.
+For this command, `--input` is the clustered Seurat RDS, `--map` is the
+cluster-to-cell-type CSV, and `--out` is a new annotated RDS file. The required
+`--reviewed-map` flag confirms that the supplied manual mapping has been checked;
+it does not infer or validate cell identities.
+
+The utility imports `celltype_v2` and `major_celltype_v2` and requires an exact
+cluster-count match. It does not alter assays, embeddings or cluster assignments,
+and refuses to overwrite an existing output file. Use the final annotated object
+and the same mapping for figure generation.
 
 Dependencies: read stage: Matrix, dplyr, ggplot2, patchwork, data.table;
 QC: additionally SingleCellExperiment, SummarizedExperiment, scDblFinder, tibble;
 integration: Seurat, harmony, clustree, ggraph and the plotting dependencies.
-The full 63,450-nucleus processing was not rerun during code curation.

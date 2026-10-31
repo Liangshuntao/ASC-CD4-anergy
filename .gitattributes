@@ -1,3 +1,2 @@
 *.R text eol=lf
 *.md text eol=lf
-archive/** -text

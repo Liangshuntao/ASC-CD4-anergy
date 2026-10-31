@@ -2,7 +2,7 @@
 # SOURCE BEGIN 665:740
 # 模块 5：基于 TIDE 逻辑的免疫逃逸分析 (R 原生版)
 # ==============================================================================
-message(">>> 正在通过 R 逻辑重构 TIDE 评分 (无需 Python)...")
+message("Calculating the custom expression-derived composite score...")
 
 # 1. 定义 TIDE 官方公开的 Exclusion (免疫排斥) 标志物
 # 这些基因是 TIDE 评估基质屏障的核心
@@ -37,7 +37,7 @@ final_df <- final_df %>%
     Responder = ifelse(TIDE_Score < median(TIDE_Score), "True", "False")
   )
 
-message("🎉 TIDE 核心分值计算完成！正在绘制 Figure 5...")
+message("Composite scores calculated; generating plots...")
 
 # ------------------------------------------------------------------------------
 # 5. 绘制 Figure 5：免疫治疗预测与机制关联
@@ -75,6 +75,6 @@ fig5_final
 
 ggsave("Figure_5_TIDE_Rversion.pdf", plot = fig5_final, width = 16, height = 6)
 
-message("✅ Figure 5 已在文件夹中生成：Figure_5_TIDE_Rversion.pdf")
+message("Composite-score plots saved: Figure_5_TIDE_Rversion.pdf")
 
 # SOURCE END 665:740

@@ -1,25 +1,19 @@
 # Human breast adipose candidate evidence
 
-Recommended figure replay begins with the audited annotated PRJNA932038 Seurat
-object and its reviewed cluster map. It is not a FASTQ-to-annotation pipeline.
+Figure S7 is generated from the annotated PRJNA932038 Seurat object and its
+manually reviewed cluster map.
 
 ```
 Rscript analysis/human_adipose/plot_asc_like_candidate_evidence.R --input /path/annotated.rds --annotation-map /path/mapping.csv --out /path/new_output --preflight
 Rscript analysis/human_adipose/plot_asc_like_candidate_evidence.R --input /path/annotated.rds --annotation-map /path/mapping.csv --out /path/new_output
 ```
 
-All final candidate, denominator, marker-count and nested ENG/THY1 definitions,
-metadata assertions, embeddings and plot calculations are unchanged. Changes
-are limited to explicit file paths, dependency checks and input manifest paths.
-The object must contain the original audited fields; the script does not invent
-annotations or silently regenerate a different embedding. Original source and
-preprocessing are kept under archive/historical/scripts/human_PRJNA932038.
-The reviewed mapping CSV is available there under steps/step04/attempt_011/tables/.
+The input object must contain the study annotations and embeddings used for
+plotting. The cluster map is provided in metadata/reviewed_cluster_map.csv.
 
-This covers the previously generated reviewer evidence used for Figure S7. The
-source access route for the annotated object remains a data-availability requirement.
+See [DATA_ACCESS.md](../../DATA_ACCESS.md) for input availability.
 The staged preprocessing interface is described in PREPROCESSING.md, followed by
 explicit import of the reviewed cluster map. Dependencies: Seurat, SeuratObject, Matrix, ggplot2, patchwork,
 dplyr, scales, digest and yaml. No packages are installed by this script.
-Preflight verifies paths/dependencies, not scientific validity or all object metadata.
+Preflight checks input paths and package dependencies.
 Historical output names are retained to preserve the existing figure/data mapping.
