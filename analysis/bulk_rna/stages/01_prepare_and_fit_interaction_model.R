@@ -6,21 +6,21 @@ library(tidyverse)
 
 asc <- read.csv(input_file, check.names = FALSE)
 
-# 1) 指定列
+# Specify identifier columns
 id_col   <- "Gene ID"
 sym_col  <- "Gene Symbol"
 
 stopifnot(all(c(id_col, sym_col) %in% colnames(asc)))
 
-# 2) 清理 Gene Symbol 的单引号与空白
+# Remove quotation marks and surrounding whitespace from gene symbols
 asc <- asc %>%
   mutate(
-    !!sym_col := str_replace_all(.data[[sym_col]], "^'+|'+$", ""),  # 去掉首尾单引号（可能多个）
-    !!sym_col := str_replace_all(.data[[sym_col]], "\"", ""),      # 防御性：去掉双引号
+    !!sym_col := str_replace_all(.data[[sym_col]], "^'+|'+$", ""),  # Remove leading and trailing single quotes
+    !!sym_col := str_replace_all(.data[[sym_col]], "\"", ""),      # Remove double quotes
     !!sym_col := str_trim(.data[[sym_col]])
   )
 
-# 3) 处理 Gene Symbol 缺失：用 Gene ID 兜底
+# Use Gene ID when Gene Symbol is missing
 asc <- asc %>%
   mutate(
     GeneKey = ifelse(is.na(.data[[sym_col]]) | .data[[sym_col]] == "",
@@ -28,15 +28,15 @@ asc <- asc %>%
                      .data[[sym_col]])
   )
 
-# 4) 样本列：排除 Gene ID / Gene Symbol / GeneKey
+# Identify sample columns by excluding annotation columns
 sample_cols <- setdiff(colnames(asc), c(id_col, sym_col, "GeneKey"))
 
-# 5) 构建表达矩阵（normalized read count）
+# Construct the normalized-expression matrix
 mat <- as.matrix(asc[, sample_cols])
 rownames(mat) <- asc$GeneKey
 
-# 6) Gene Symbol 去重：同名基因取中位数（或均值）
-#    推荐中位数，抗异常值；你也可改成 mean
+# Aggregate duplicate gene symbols by median after log2 transformation
+
 expr <- log2(mat + 1)
 
 expr_df <- as.data.frame(expr) %>%
@@ -59,16 +59,16 @@ dim(expr_mat)
 expr_mat[1:3, 1:6]
 
 
-#第二步：清理列名 + 构建 sample_info（适配你真实列名）
+# Clean sample names and construct sample_info
 
 library(tidyverse)
 
-# 1) 清理列名：去掉统一前缀
+# Remove the common sample-column prefix
 colnames(expr_mat) <- sub("^Normalized read count\\s+", "", colnames(expr_mat))
 
 head(colnames(expr_mat), 10)
 
-# 2) 生成 sample_info
+# Construct sample metadata
 sample_info <- data.frame(sample = colnames(expr_mat), stringsAsFactors = FALSE) %>%
   mutate(
     timepoint = ifelse(str_detect(sample, "^after_"), "After", "Before"),
@@ -77,7 +77,7 @@ sample_info <- data.frame(sample = colnames(expr_mat), stringsAsFactors = FALSE)
       str_detect(sample, "ASC_N_") ~ "N",
       TRUE ~ NA_character_
     ),
-    group = paste0(timepoint, "_ASC_", subtype)  # 方便做颜色/注释
+    group = paste0(timepoint, "_ASC_", subtype)  # Group labels for plot annotations
   )
 
 print(sample_info)
@@ -103,19 +103,19 @@ colnames(design)
 
 fit <- lmFit(expr_mat, design)
 
-# 交互项模型下的核心 contrasts
+# Contrasts from the subtype-by-timepoint interaction model
 cont <- makeContrasts(
-  # 共培养前：P vs N（Before 的固有差异）
+  # ASC_P versus ASC_N before coculture
   Pre_P_vs_N  = subtypeP - subtypeN,
   
-  # 共培养后：P vs N（After 的差异）
-  # After 时：P = subtypeP + subtypeP.timepointAfter；N = subtypeN + 0
+  # ASC_P versus ASC_N after coculture
+  # After: P = subtypeP + subtypeP.timepointAfter; N = subtypeN
   Post_P_vs_N = (subtypeP + subtypeP.timepointAfter) - subtypeN,
   
-  # DID：共培养诱导变化是否 P 特异（最关键机制池）
+  # Difference-in-differences: subtype-biased coculture-associated change
   DID_P_specific_change = subtypeP.timepointAfter,
   
-  # 各自 after-before（可选）
+  # Within-subtype after-versus-before contrasts
   P_After_vs_Before = timepointAfter + subtypeP.timepointAfter,
   N_After_vs_Before = timepointAfter,
   
@@ -134,19 +134,19 @@ res_pre  <- get_res("Pre_P_vs_N")
 res_post <- get_res("Post_P_vs_N")
 res_did  <- get_res("DID_P_specific_change")
 
-# 保存
+# Export result tables
 write.csv(res_pre,  "ASC_RNA_Pre_P_vs_N.csv",  row.names = FALSE)
 write.csv(res_post, "ASC_RNA_Post_P_vs_N.csv", row.names = FALSE)
 write.csv(res_did,  "ASC_RNA_DID_P_specific_change.csv", row.names = FALSE)
 
-# 先看 DID top hits（机制候选库）
+# Inspect the leading DID results
 nrow(res_did)
 head(res_did[, c("Gene","logFC","FDR")], 20)
 
 # SOURCE END 268:317
 
 # SOURCE BEGIN 411:425
-# 第一步：把 ASC 的三个对比都跑齐并落表（Pre、Post、DID）
+# Export complete and significance-filtered tables for the three primary contrasts
 sig_cut_fdr  <- 0.05
 sig_cut_lfc  <- 0.5
 

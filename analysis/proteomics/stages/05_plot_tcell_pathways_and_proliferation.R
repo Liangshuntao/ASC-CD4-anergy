@@ -14,12 +14,12 @@ cd4_GSVA_selected =cd4_gsva[c("HALLMARK_CHOLESTEROL_HOMEOSTASIS",
                               "HALLMARK_MYC_TARGETS_V1",
                               "HALLMARK_MYC_TARGETS_V2",
                               "HALLMARK_G2M_CHECKPOINT"),]
-## 打开一个 PDF 设备
+# Open a PDF graphics device
 pdf("CD4_GSVA_heatmap.pdf", width = 6, height = 4)
-## 在这个设备上画图
+# Draw the plot on the active device
 pheatmap(
   cd4_GSVA_selected,
-  scale = "row",  # 行标准化，看相对高低
+  scale = "row",  # Standardize rows to display relative expression
   clustering_distance_rows = "euclidean",
   clustering_distance_cols = "euclidean",
   annotation_col = annot_col,
@@ -34,7 +34,7 @@ pheatmap(
   treeheight_row = 0,
   treeheight_col = 0,
 )
-## 关闭设备，文件写入完成
+# Close the device and finish writing the file
 dev.off()
 
 # SOURCE END 1241:1277
@@ -43,7 +43,7 @@ dev.off()
 library(dplyr)
 library(ggplot2)
 
-## 1. 选取四个增殖相关 hallmark
+# Select four proliferation-associated Hallmark pathways
 paths_cycle <- c(
   "HALLMARK_CHOLESTEROL_HOMEOSTASIS",
   "HALLMARK_COAGULATION",
@@ -64,9 +64,9 @@ df_cycle <- res_cd4_gsva %>%
   filter(Pathway %in% paths_cycle) %>%
   select(Pathway, logFC, FDR)
 
-## 2. 调整顺序：按 logFC 从高到低排，方便视觉
+# Order pathways by log fold change
 df_cycle <- df_cycle %>%
-  arrange(logFC) %>%               # 这里是从低到高，方便做横图
+  arrange(logFC) %>%               # Ascending order for the horizontal plot
   mutate(Pathway = factor(Pathway, levels = Pathway))
 
 colnames(df_cycle)
@@ -77,19 +77,19 @@ write.csv(
   row.names = FALSE
 )
 
-## 3. 画图：横向条形图（CD4_P vs CD4_N）
+# Plot horizontal bars for CD4_P versus CD4_N
 library(dplyr)
 library(ggplot2)
 
-## 3.1. 构造方向列 + 排序
+# Define direction labels and ordering
 df_cycle2 <- df_cycle %>%
   mutate(
     direction = ifelse(logFC > 0, "Up_in_CD4_P", "Down_in_CD4_P"),
     Pathway   = factor(Pathway, levels = Pathway[order(logFC)]),
-    label     = sprintf("FDR=%.3g", FDR)   # 只标注 FDR
+    label     = sprintf("FDR=%.3g", FDR)   # Label FDR values
   )
 
-## 3.2. 画横向条形图
+# Draw the horizontal bar plot
 p.CD4.protein=ggplot(df_cycle2, aes(x = logFC, y = Pathway, fill = direction)) +
                      geom_col(width = 0.7) +
                       geom_vline(xintercept = 0, linetype = "dashed") +
@@ -128,7 +128,7 @@ ggsave(filename = "CD4 protein GSVA.pdf",plot =p.CD4.protein,width = 8,height = 
 library(dplyr)
 library(pheatmap)
 
-## 一组典型的增殖/细胞周期基因（人符号，小鼠看你数据是人还是鼠）
+# Selected proliferation and cell-cycle genes
 genes_prolif <- c(
   "MKI67",   # Ki-67
   "PCNA",
@@ -141,8 +141,8 @@ genes_prolif <- c(
   "MCM4",
   "MCM6"
 )
-##在表达矩阵里匹配这些基因（大小写不敏感）
-# 假定 expr_cd4_for_gsva 的行名是 gene symbol
+# Match genes case-insensitively
+# The matrix row names contain gene symbols
 all_genes      <- rownames(expr_cd4_for_gsva)
 all_genes_up   <- toupper(all_genes)
 genes_prolif_up <- toupper(genes_prolif)
@@ -151,27 +151,27 @@ idx <- all_genes_up %in% genes_prolif_up
 
 prolif_genes_in_mat <- all_genes[idx]
 prolif_genes_in_mat
-# 看看实际匹配到了哪些
+# Inspect the matched genes
 
 mat_prolif <- expr_cd4_for_gsva[prolif_genes_in_mat, , drop = FALSE]
 
-# 列注释：CD4_N / CD4_P
+# Sample annotations: CD4_N and CD4_P
 annot_col <- data.frame(
   condition = sample_info_cd4$condition
 )
-rownames(annot_col) <- sample_info_cd4$sample  # 要和列名一致
+rownames(annot_col) <- sample_info_cd4$sample  # Match annotation row names to expression columns
 
-# 确保顺序一致
+# Verify sample ordering
 mat_prolif <- mat_prolif[, rownames(annot_col), drop = FALSE]
 
-# 画热图（row scale 展示相对高低）
-## 打开一个 PDF 设备
+# Draw the row-standardized heatmap
+# Open a PDF graphics device
 pdf("CD4_proliferation_heatmap.pdf", width = 6, height = 4)
 
-## 在这个设备上画图
+# Draw on the active device
 pheatmap(
   mat_prolif,
-  scale = "row",  # 行标准化，看相对高低
+  scale = "row",  # Standardize rows to display relative expression
   clustering_distance_rows = "euclidean",
   clustering_distance_cols = "euclidean",
   annotation_col = annot_col,
@@ -186,7 +186,7 @@ pheatmap(
   treeheight_row = 0,
   treeheight_col = 0,
 )
-## 关闭设备，文件写入完成
+# Close the graphics device
 dev.off()
 
 # SOURCE END 1279:1426

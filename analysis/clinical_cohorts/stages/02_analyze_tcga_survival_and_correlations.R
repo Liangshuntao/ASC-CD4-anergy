@@ -1,21 +1,21 @@
 # Provenance-linked final analysis block; run using run_clinical_analysis.R.
 # SOURCE BEGIN 90:361
 # ==============================================================================
-# Figure 1：临床预后与交互分析 (现象篇)
+# Subtype-stratified and joint-group survival analyses
 # ==============================================================================
 message("Generating clinical analysis plots...")
 
 # ------------------------------------------------------------------------------
-# 准备步骤：生成包含所有亚型的数据框 (用于 1A-1D)
+# Prepare the table containing all subtypes
 # ------------------------------------------------------------------------------
 all_subtypes_df <- clinical_base %>%
   left_join(gsva_df, by = "barcode")
 
 # ------------------------------------------------------------------------------
-# 1A-1D：定义全亚型分层生存 KM 函数 (25% 极值划分法)
+# Kaplan-Meier analysis using upper and lower score quartiles
 # ------------------------------------------------------------------------------
 run_subgroup_km <- function(data, subtype_name) {
-  # 1. 过滤对应亚型
+  # Select the requested subtype
   sub_df <- data %>% dplyr::filter(BRCA_Subtype_PAM50 == subtype_name)
   
   if(nrow(sub_df) < 20) {
@@ -23,26 +23,26 @@ run_subgroup_km <- function(data, subtype_name) {
     return(NULL)
   }
   
-  # 2. 计算 ASC_P_6 得分的上下 25% 分位数
+  # Calculate the 25th and 75th percentiles of ASC_P_6
   q_h <- quantile(sub_df$ASC_P_6, 0.75, na.rm = TRUE)
   q_l <- quantile(sub_df$ASC_P_6, 0.25, na.rm = TRUE)
   
-  # 3. 提取极值样本并分组
+  # Retain and label the upper and lower quartile groups
   sub_extreme <- sub_df %>%
     dplyr::filter(ASC_P_6 >= q_h | ASC_P_6 <= q_l) %>%
     mutate(Group = ifelse(ASC_P_6 >= q_h, "High", "Low"))
   
-  # 4. 确保有足够的死亡事件进行统计
+  # Check the number of death events
   if(sum(sub_extreme$OS.status) < 3) {
     message(paste("Skipping", subtype_name, ": insufficient death events"))
     return(NULL)
   }
   
-  # 5. 生存分析模型拟合与绘图
+  # Fit and plot survival curves
   fit <- survfit(Surv(OS.time, OS.status) ~ Group, data = sub_extreme)
   p <- ggsurvplot(fit, data = sub_extreme, pval = TRUE, conf.int = TRUE,
-                  palette = c("#E41A1C", "#377EB8"), # 红蓝配色，红高蓝低
-                  xlim = c(0, 2000), break.time.by = 500, # 核心修改：截断 2000 天
+                  palette = c("#E41A1C", "#377EB8"), # Red: high score; blue: low score
+                  xlim = c(0, 2000), break.time.by = 500, # Display follow-up through 2,000 days
                   title = paste("Subtype:", subtype_name),
                   xlab = "Time (Days)", legend.labs = c("High", "Low"),
                   ggtheme = theme_bw() + theme(plot.title = element_text(hjust = 0.5, face = "bold")))
@@ -51,7 +51,7 @@ run_subgroup_km <- function(data, subtype_name) {
 }
 
 # ------------------------------------------------------------------------------
-# 执行循环并合成 Fig 1A-D 拼图
+# Generate and assemble subtype-specific survival plots
 # ------------------------------------------------------------------------------
 subtypes <- c("Basal", "LumA", "LumB", "Her2")
 plot_list_final <- list()
@@ -59,14 +59,14 @@ plot_list_final <- list()
 for(st in subtypes) {
   p_obj <- run_subgroup_km(all_subtypes_df, st)
   if(!is.null(p_obj)) {
-    # 提取 ggplot 对象，统一将图例放顶部以方便拼图
+    # Place the legend above each plot
     p_ggplot <- p_obj$plot + theme(legend.position = "top")
     plot_list_final[[st]] <- p_ggplot
     message(paste("Survival curves generated for subtype:", st))
   }
 }
 
-# 使用 cowplot 将四张图拼在一起 (2x2布局)
+# Assemble four panels in a 2-by-2 layout
 figure_1_ABCD <- plot_grid(
   plotlist = plot_list_final,
   labels = c("A", "B", "C", "D"),
@@ -77,7 +77,7 @@ figure_1_ABCD <- plot_grid(
 
 print(figure_1_ABCD)
 
-# 保存 1A-1D 高清 PDF
+# Save the survival panels as PDF
 ggsave("Fig 1A-D Subtypes KM.pdf", 
        plot = figure_1_ABCD, 
        width = 10, 
@@ -86,7 +86,7 @@ ggsave("Fig 1A-D Subtypes KM.pdf",
 message("Survival curve panels saved.")
 
 # ------------------------------------------------------------------------------
-# 1E：LumB 交互生存分析 (使用只包含 LumB 的 final_df)
+# Joint-group survival analysis in Luminal B samples
 # ------------------------------------------------------------------------------
 message("Generating joint-group survival curves...")
 
@@ -104,7 +104,7 @@ message("Joint-group survival plot saved.")
 
 
 # ------------------------------------------------------------------------------
-# 1F：Cox 回归森林图
+# Cox regression forest plot
 # ------------------------------------------------------------------------------
 message("Generating the Cox model forest plot...")
 
@@ -119,11 +119,11 @@ ggsave("Fig 1F Cox Forest.pdf", plot = p_1F, width = 10, height = 7)
 message("Cox model forest plot saved.")
 
 # ==============================================================================
-# Figure 2：细胞互作相关性分析 (互作篇)
+# Correlations between stromal and T-cell scores
 # ==============================================================================
 message("Generating cell-score correlation plots...")
 
-# 2A：ASC_P vs Anergy (红色系，代表功能废黜风险)
+# ASC_P versus anergy score
 p_2A <- ggscatter(final_df, x = "ASC_P_6", y = "CD4T_Anergy", 
                   add = "reg.line", conf.int = TRUE, cor.coef = TRUE, cor.method = "spearman", 
                   xlab = "ASC_P Signature Score", 
@@ -143,7 +143,7 @@ ggsave("Fig_2A_ASC_P_vs_Anergy.pdf",
 
 
 
-# 2B：ASC_P vs Treg (紫色系，代表特异性抑制细胞的招募)
+# ASC_P versus Treg score
 p_2B <- ggscatter(final_df, x = "ASC_P_6", y = "Treg_Infiltration", 
                   add = "reg.line", conf.int = TRUE, cor.coef = TRUE, cor.method = "spearman", 
                   xlab = "ASC_P Signature Score", 
@@ -162,7 +162,7 @@ ggsave("Fig_2B_ASC_P_vs_Treg.pdf",
        device = "pdf")
 
 
-# 2C：ASC_P vs Infiltration (蓝色系，代表整体免疫招募)
+# ASC_P versus CD4 T-cell infiltration score
 p_2C <- ggscatter(final_df, x = "ASC_P_6", y = "CD4T_Infiltration", 
                   add = "reg.line", conf.int = TRUE, cor.coef = TRUE, cor.method = "spearman", 
                   xlab = "ASC_P Signature Score", 
@@ -181,7 +181,7 @@ ggsave("Fig_2C_ASC_P_vs_Infiltration.pdf",
 
 
 
-# 2D：Infiltration vs Anergy (灰色系，特异性对照，证明失能非数量引起)
+# CD4 T-cell infiltration versus anergy score
 p_2D <- ggscatter(final_df, x = "CD4T_Infiltration", y = "CD4T_Anergy", 
                   add = "reg.line", conf.int = TRUE, cor.coef = TRUE, cor.method = "spearman", 
                   xlab = "CD4T Infiltration Score", 
@@ -200,14 +200,14 @@ ggsave("Fig_2D_Infiltration_vs_Anergy.pdf",
 
 
 # ==============================================================================
-# 补充模块：Fig 2E - ASC_P 与 CD4T Exhaustion (耗竭) 的相关性分析
+# ASC_P and CD4 T-cell exhaustion score correlation
 # ==============================================================================
 message("Generating the CD4 T-cell exhaustion correlation plot...")
 
 library(ggpubr)
 library(cowplot)
 
-# 2E：ASC_P vs Exhaustion (橙色系，代表慢性抗原刺激下的免疫耗竭)
+# ASC_P versus exhaustion score
 p_2E <- ggscatter(final_df, x = "ASC_P_6", y = "CD4T_Exhaustion", 
                   add = "reg.line", conf.int = TRUE, cor.coef = TRUE, cor.method = "spearman", 
                   xlab = "ASC_P Signature Score", 
@@ -226,13 +226,13 @@ ggsave("Fig_2E_ASC_P_vs_Exhaustion.pdf",
        device = "pdf")
 
 # ==============================================================================
-# 补充模块：Fig 2F - Anergy (失能) 与 Exhaustion (耗竭) 的内在相关性
+# Correlation between anergy and exhaustion scores
 # ==============================================================================
 message("Generating the anergy versus exhaustion correlation plot...")
 
 library(ggpubr)
 
-# 2F：Anergy vs Exhaustion (墨绿色系，代表 T 细胞命运的衰竭轨迹)
+# Anergy versus exhaustion score
 p_2F <- ggscatter(final_df, x = "CD4T_Anergy", y = "CD4T_Exhaustion", 
                   add = "reg.line", conf.int = TRUE, cor.coef = TRUE, cor.method = "spearman", 
                   xlab = "CD4T Anergy Score (Early Dysfunction)", 
@@ -242,10 +242,10 @@ p_2F <- ggscatter(final_df, x = "CD4T_Anergy", y = "CD4T_Exhaustion",
   theme_bw() +
   theme(plot.title = element_text(hjust = 0.5, face = "bold"))
 
-# 打印显示在屏幕上
+# Display the plot
 print(p_2F)
 
-# 单独保存这张极具机制说明力的图
+# Save the individual correlation plot
 ggsave("Fig_2F_Anergy_vs_Exhaustion.pdf", 
        plot = p_2F, 
        width = 6, 
@@ -257,14 +257,14 @@ message("Anergy versus exhaustion correlation plot saved.")
 
 
 
-# 合成 2x2 拼图
+# Assemble a 2-by-2 panel layout
 figure_2_ABCD <- plot_grid(p_2A, p_2B, p_2C, p_2D, 
                            labels = c("A", "B", "C", "D"), 
                            ncol = 2, nrow = 2, align = "hv")
 
 print(figure_2_ABCD)
 
-# 保存高分辨率 PDF
+# Save as PDF
 ggsave("Fig 2ABCD Cellular Interaction_Premium.pdf", 
        plot = figure_2_ABCD, 
        width = 12, 

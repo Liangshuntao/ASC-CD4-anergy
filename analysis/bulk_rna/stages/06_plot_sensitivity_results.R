@@ -5,7 +5,7 @@
 library(tidyverse)
 library(ggplot2)
 
-# 读入 ccAdjusted CAMERA 结果
+# Read cell-cycle-adjusted CAMERA results
 cc_path <- "ASC_DID_CAMERA_Hallmark_ccAdjusted.csv"
 cc <- read.csv(cc_path, check.names = FALSE)
 
@@ -18,7 +18,7 @@ cc2 <- cc %>%
   )
 
 # -------------------------
-# S5D 主图：Top 15 Hallmarks
+# Plot the top 15 Hallmark pathways
 # -------------------------
 top_n <- 15
 df_top <- cc2 %>%
@@ -59,7 +59,7 @@ dev.off()
 # SOURCE END 710:762
 
 # SOURCE BEGIN 840:867
-## 7) 生成一个“raw vs cc-adjusted logFC”散点图（审稿人友好）
+# Compare primary and cell-cycle-adjusted log fold changes
 library(ggplot2)
 
 p_scatter <- ggplot(cmp, aes(x = logFC_raw, y = logFC_cc)) +
@@ -74,7 +74,7 @@ p_scatter <- ggplot(cmp, aes(x = logFC_raw, y = logFC_cc)) +
 p_scatter
 ggsave("ASC_DID_raw_vs_ccAdjusted_scatter.pdf", p_scatter, width = 4.8, height = 4.2)
 
-## 8) 可选：只标注关键基因（在散点图上写字）
+# Label selected genes on the comparison plot
 library(ggrepel)
 
 p_scatter_lab <- p_scatter +

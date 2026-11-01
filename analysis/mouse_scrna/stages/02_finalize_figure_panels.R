@@ -814,55 +814,55 @@ pw_cols <- grep("_PROGENY$", colnames(seu_cd4_nonTreg@meta.data), value = TRUE)
 df_cor <- seu_cd4_nonTreg@meta.data[, c(score_cols, pw_cols), drop = FALSE]
 df_cor <- as.data.frame(df_cor)
 
-# 如果有非数值列（factor/character），先剔除掉
+# Exclude nonnumeric columns
 is_num <- vapply(df_cor, is.numeric, logical(1))
 df_cor <- df_cor[, is_num, drop = FALSE]
 
 
-# 5) Spearman 相关，使用 pairwise.complete.obs
+# Compute Spearman correlations using pairwise.complete.obs
 cor_mat <- cor(df_cor, method = "spearman", use = "pairwise.complete.obs")
 
-# 6) 只取 “状态分数 vs 通路”的子矩阵
+# Extract the state-score-by-pathway submatrix
 rows <- intersect(score_cols, rownames(cor_mat))
 cols <- intersect(pw_cols,  colnames(cor_mat))
 
 sub_cor <- cor_mat[rows, cols, drop = FALSE]
 
-# 7) 去掉全是 NA/NaN/Inf 的行/列
+# Remove rows and columns without finite values
 finite_mask_row <- rowSums(is.finite(sub_cor)) > 0
 finite_mask_col <- colSums(is.finite(sub_cor)) > 0
 sub_cor <- sub_cor[finite_mask_row, finite_mask_col, drop = FALSE]
 
-# 8) 如果还有零星 NA/NaN/Inf，用 0 填（或行/列均值，自行替换）
+# Replace remaining nonfinite values with zero
 sub_cor[!is.finite(sub_cor)] <- 0
 
 rownames(sub_cor)
 
-# 想要的行顺序
+# Specify the state-score row order
 row_order <- c(
   "ANERGY_ssGSEA", "ANERGY_GSVA", "ANERGY_AUCell", "ANERGY_MSCORE",
   "ACT_ssGSEA",    "ACT_GSVA",    "ACT_AUCell",    "ACT_MSCORE",
   "EXH_ssGSEA",    "EXH_GSVA",    "EXH_AUCell",    "EXH_MSCORE"
 )
 
-# 按给定顺序重排行（并保证这些行确实存在）
+# Reorder rows using labels present in the matrix
 row_order_use <- row_order[row_order %in% rownames(sub_cor)]
 
 sub_cor <- sub_cor[row_order_use, , drop = FALSE]
 
 sub_cor_pheatmap=pheatmap(sub_cor,
-                             cluster_rows = F,   # 聚类行
-                             cluster_cols = TRUE,   # 聚类列
-                             show_rownames = TRUE,  # 显示行名（基因集）
-                             show_colnames = T, # 不显示列名（细胞）
+                             cluster_rows = F,   # Cluster rows
+                             cluster_cols = TRUE,   # Cluster columns
+                             show_rownames = TRUE,  # Show gene-set row labels
+                             show_colnames = T, # Hide cell labels
                              angle_col     = 45,
-                             cellwidth = 18,     # 设定cell 的大小
-                             cellheight = 18,      # 设定cell 的大小
-                             scale = "row",         # 对行进行标准化
+                             cellwidth = 18,     # Heatmap cell height
+                             cellheight = 18,      # Heatmap cell width
+                             scale = "row",         # Standardize each row
                              treeheight_col = 0,
                               border_color   =  "white",
-                             color = colorRampPalette(c("#4675B5",  "white", "red"))(50),  # 色标设置
-                             fontsize = 8)         # 字体大小
+                             color = colorRampPalette(c("#4675B5",  "white", "red"))(50),  # Color scale
+                             fontsize = 8)         # Font size
 sub_cor_pheatmap
 
 ggsave("sub_cor_pheatmap.pdf", 
@@ -870,7 +870,7 @@ ggsave("sub_cor_pheatmap.pdf",
        width = 20, height = 12, dpi = 600)
 
 sub_cor
-saveRDS(sub_cor, file="sub_cor.rds") ####保存分析后的数据，方便下次直接读取。
+saveRDS(sub_cor, file="sub_cor.rds") # Save the processed object
 
 write.csv(sub_cor, "CD4_PROGENy_vs_state_ANERGY_ACT_EXH_scores_correlation.csv", row.names = FALSE)
 

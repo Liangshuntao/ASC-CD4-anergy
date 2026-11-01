@@ -1,5 +1,5 @@
 # SOURCE BEGIN 554:675
-###提取筛选后的GSVA
+# Extract the selected GSVA results
 df_asc_gsva_sel <- read.csv(asc_pathways_file, fileEncoding = "UTF-8-BOM")
 
 
@@ -51,9 +51,9 @@ p.ASC.gava.plot
 
 ggsave(filename = "ASC protein GSVA.plot.pdf",plot =p.ASC.gava.plot,width = 16,height = 6,dpi = 600)
 
-###热图展示
+# Plot the pathway heatmap
 
-##按照列合并
+# Combine pathway matrices by column
 asc_gsva_Hallmark_kegg <- rbind(asc_gsva_Hallmark, asc_gsva_kegg)
 
 df_asc_gsva_sel[,1]
@@ -62,25 +62,25 @@ df_asc_gsva_sel[,1]
 ASC_GSVA_selected =asc_gsva_Hallmark_kegg[df_asc_gsva_sel[,1],]
 
 
-# 列注释：ASC_N / ASC_P
-## 1. 设定 condition 的顺序：先 ASC_N，再 ASC_P
+# Sample annotations: ASC_N and ASC_P
+# Set condition order to ASC_N followed by ASC_P
 sample_info_asc$condition <- factor(sample_info_asc$condition,
                                     levels = c("ASC_N", "ASC_P"))
 
-## 2. 按 condition 排序样本
+# Order samples by condition
 sample_info_asc <- sample_info_asc[order(sample_info_asc$condition), ]
 
-## 3. 按样本顺序重排热图矩阵的列
+# Align matrix columns to the sample order
 ASC_GSVA_selected <- ASC_GSVA_selected[, sample_info_asc$sample]
 
-## 4. 构建列注释
+# Construct column annotations
 annot_col_asc <- data.frame(
   condition = sample_info_asc$condition
 )
 rownames(annot_col_asc) <- sample_info_asc$sample
 
 
-## 先定义你想要的行顺序
+# Specify the pathway row order
 row_order <- c(
   "WP_PLATELETMEDIATED_INTERACTIONS_WITH_VASCULAR_AND_CIRCULATING_CELLS",
   "REACTOME_ARACHIDONATE_PRODUCTION_FROM_DAG",
@@ -94,20 +94,20 @@ row_order <- c(
   "HALLMARK_INTERFERON_ALPHA_RESPONSE"
 )
 
-## 按这个顺序重排矩阵行（顺便防一下有缺的）
+# Reorder rows using available pathway labels
 row_order_use <- intersect(row_order, rownames(ASC_GSVA_selected))
 ASC_GSVA_selected <- ASC_GSVA_selected[row_order_use, , drop = FALSE]
 
 
 
-## 5. 画图：关键是这里 cluster_cols = FALSE
-## 画图：关键是 cluster_rows = FALSE，保持你手动设定的行顺序
+# Plot with column clustering disabled
+# Disable row clustering to preserve the selected pathway order
 pdf("ASC_GSVA_heatmap.pdf", width = 10, height = 4)
 pheatmap(
   ASC_GSVA_selected,
   scale = "row",
-  cluster_rows = FALSE,              # ← 不对行聚类，行顺序照 row_order 来
-  cluster_cols = FALSE,              # ← 列顺序前面已经处理过
+  cluster_rows = FALSE,              # Preserve row_order
+  cluster_cols = FALSE,              # Preserve the ordered sample columns
   annotation_col = annot_col_asc,
   main = "GSVA in ASC_N vs ASC_P",
   fontsize_row = 6,

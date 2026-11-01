@@ -1,5 +1,5 @@
 # SOURCE BEGIN 171:206
-# 4.3 limma 差异分析：ASC_P vs ASC_N
+# limma differential-protein analysis: ASC_P versus ASC_N
 group_asc <- droplevels(sample_info_asc$condition)  # ASC_N, ASC_P
 
 design_asc <- model.matrix(~ 0 + group_asc)
@@ -76,9 +76,9 @@ write.csv(filter(res_CD4_anno, sig == "sig"),
 # SOURCE END 943:975
 
 # SOURCE BEGIN 448:484
-## 4.7.4 GSVA limma分析：ASC_P vs ASC_N
+# limma pathway-score analysis: ASC_P versus ASC_N
 
-## 保证列顺序与 sample_info_asc 一致
+# Align columns with sample_info_asc
 asc_gsva <- asc_gsva[, sample_info_asc$sample, drop = FALSE]
 group_asc <- droplevels(sample_info_asc$condition)  # ASC_N / ASC_P
 

@@ -36,7 +36,7 @@ if(preflight) { message("PREFLIGHT PASS"); setwd(oldwd); quit(save="no",status=0
 # ==============================================================================
 # FIGURE 1 UPSTREAM | state scores core | original lines 996-1056 | gene sets, CD4 subset, GSVA and ssGSEA
 # ==============================================================================
-## ========= 1) 定义签名 =========
+# Define state signatures
 gs_anergy <- c("RNF128","CBLB","ITCH","EGR2","EGR3","DGKA","NR4A1","NR4A2","NR4A3","TOX","PDCD1","CTLA4","LAG3","HAVCR2")
 gs_act    <- c("CD69","IL2RA","IFNG","TNF","GZMB","PRF1")
 gs_exh    <- c("PDCD1","LAG3","TIGIT","HAVCR2","TOX","BATF","CXCL13")
@@ -46,26 +46,26 @@ gs_th17   <- c("RORC","IL17A","IL17F","CCR6")
 gs_tfh    <- c("BCL6","CXCR5")
 sig_list <- list(ANERGY=gs_anergy, ACT=gs_act, EXH=gs_exh, TH1=gs_th1, TH2=gs_th2, TH17=gs_th17, TFH=gs_tfh)
 
-## ========= 2) 以 active_ident 作为分群列 =========
+# Use active_ident as the grouping column
 stopifnot("active_ident" %in% colnames(seu_scWAT@meta.data))
 seu_scWAT$active_ident <- factor(trimws(seu_scWAT$active_ident))
 Idents(seu_scWAT) <- "active_ident"
 
-## ========= 3) 取表达矩阵（log-normalized “data” 槽）=========
+# Extract log-normalized expression from the data layer
 DefaultAssay(seu_scWAT) <- "RNA"
 
-# 若未 NormalizeData()，先运行：seu_scWAT <- NormalizeData(seu_scWAT)
+# Input expression should be normalized before signature scoring
 
-# 根据 active_ident 提取 CD4_T_nonTreg 细胞
+# Select CD4_T_nonTreg cells using active_ident
 seu_cd4_nonTreg <- subset(seu_scWAT, subset = active_ident == "CD4_T_nonTreg")
 
-# 获取 CD4_T_nonTreg 的表达矩阵
+# Extract the CD4_T_nonTreg expression matrix
 
 mat<- as.matrix(GetAssayData(seu_cd4_nonTreg, layer = "data"))  # genes x cells
 
-###  mat <- as.matrix(GetAssayData(seu_scWAT, layer = "data"))  # genes x cells 提取总的
 
-# 大写匹配，提升鲁棒性
+
+# Match gene symbols in uppercase
 rownames_upper <- toupper(rownames(mat))
 sig_list_UP <- lapply(sig_list, function(v) {
   v_up <- toupper(v)
@@ -75,7 +75,7 @@ gene_index <- setNames(seq_along(rownames_upper), rownames_upper)
 
 
 
-## ========= 4) 评分 =========
+# Calculate state scores
 # 4.1 GSVA / ssGSEA
 message("[GSVA] running gsva + ssgsea ...")
 sig_list_for_gsva <- lapply(sig_list_UP, function(v) rownames(mat)[gene_index[v]])
@@ -89,34 +89,34 @@ for (nm in rownames(sc_gsva)) {
   seu_cd4_nonTreg[[paste0(nm,"_ssGSEA")]] <- as.numeric(sc_ssgsea[nm, colnames(seu_cd4_nonTreg)])
 }
 
-saveRDS(seu_cd4_nonTreg, file="seu_cd4_nonTreg.rds") ####保存分析后的数据，方便下次直接读取。
+saveRDS(seu_cd4_nonTreg, file="seu_cd4_nonTreg.rds") # Save the processed object
 
 seu_cd4_nonTreg=readRDS("seu_cd4_nonTreg.rds" ) 
 
 
 
 
-### ========可视化=========== ###
+# Visualize signature scores
 
 # ==============================================================================
 # FIGURE 1 UPSTREAM | AUCell | original lines 1165-1196 | AUCell ranking and score columns; reused by Figure S1B
 # ==============================================================================
 # 4.2 AUCell
 message("[AUCell] building rankings + AUC ...")
-# 将 sig_list_UP 中的基因符号转换为首字母大写
+# Convert signature genes to initial-capital mouse symbols
 library(tools)
 
 sig_list_UP_capitalized <- lapply(sig_list_UP, function(v) {
-  # 转换为只有首字母大写
+  # Capitalize the first character only
   v_cap <- toTitleCase(tolower(v))
   return(v_cap)
 })
 
-# 查看转换后的结果
+# Inspect converted symbols
 print(sig_list_UP_capitalized)
 
-# 检查输出
-# 转换后的基因符号应该只有首字母大写，例如 "Rnf128", "Cblb", "Itch", ...
+# Check the output
+# Examples of converted symbols: Rnf128, Cblb and Itch
 
 rankings <- AUCell::AUCell_buildRankings(mat, nCores = max(1, parallel::detectCores()-2), plotStats = FALSE)
 
@@ -130,7 +130,7 @@ for (nm in rownames(auc_mat)) {
   seu_cd4_nonTreg[[paste0(nm,"_AUCell")]] <- as.numeric(auc_mat[nm, colnames(seu_cd4_nonTreg)])
 }
 
-saveRDS(seu_cd4_nonTreg, file="seu_cd4_nonTreg.rds") ####保存分析后的数据，方便下次直接读取。
+saveRDS(seu_cd4_nonTreg, file="seu_cd4_nonTreg.rds") # Save the processed object
 
 seu_cd4_nonTreg=readRDS("seu_cd4_nonTreg.rds" ) 
 
@@ -158,37 +158,37 @@ suppressPackageStartupMessages({
   library(ggplot2); library(patchwork)
 })
 
-## ===== 0) 前提检查 =====
+# Check prerequisites
 stopifnot(inherits(seu_cd4_nonTreg, "Seurat"))
 DefaultAssay(seu_cd4_nonTreg) <- "RNA"
 
 E <- as.matrix(GetAssayData(seu_cd4_nonTreg, layer = "data"))  # genes x cells
 stopifnot(nrow(E) > 100, ncol(E) > 50)
 
-## ===== 1) 获取/构建 DoRothEA regulons（小鼠）=====
-###### 优先使用 dorothea 包内置（更稳、离线可用）#####
+# Construct mouse DoRothEA regulons
+# Use the reference supplied by the dorothea package
 regulons <- NULL
 if (requireNamespace("dorothea", quietly = TRUE)) {
   data("dorothea_mm", package = "dorothea")
   regulons <- dorothea::dorothea_mm %>%
-    dplyr::filter(confidence %in% c("A","B","C")) %>%           # 置信度筛选
+    dplyr::filter(confidence %in% c("A","B","C")) %>%           # Filter by regulon confidence
     dplyr::transmute(
       tf        = as.character(tf),
       target    = as.character(target),
-      mor       = ifelse(mor %in% c(1,-1), mor, 1),             # 激活/抑制；缺失置 1
+      mor       = ifelse(mor %in% c(1,-1), mor, 1),             # Regulatory sign; replace values outside 1/-1 with 1
       likelihood= if ("likelihood" %in% names(.)) likelihood else 1
     )
 } else {
   stop("找不到包 `dorothea`。请先安装：BiocManager::install('dorothea')")
 }
 
-# 仅保留命中的 target
+# Retain targets present in the expression matrix
 regulons <- regulons %>% dplyr::filter(target %in% rownames(E))
 stopifnot(nrow(regulons) > 1)
 
 
-## ===== 2) 计算 TF 活性（decoupleR::run_wmean）=====
-# 提醒：wmean 快、稳；viper 更鲁棒但慢（可换 run_viper）
+# Calculate TF activity using decoupleR::run_wmean
+
 tf_act_long <- decoupleR::run_wmean(
   mat        = E,
   network    = regulons,
@@ -196,21 +196,21 @@ tf_act_long <- decoupleR::run_wmean(
   .target    = "target",
   .mor       = "mor",
   .likelihood= "likelihood",
-  minsize    = 5         # 每个 TF 至少命中 5 个靶
+  minsize    = 5         # Require at least five matched targets per TF
 )
 
 saveRDS(tf_act_long, file="tf_act_long.rds") 
 
 tf_act_long=readRDS("tf_act_long.rds" ) 
 
-# 不同 decoupleR 版本列名略有差异：score/statistic；condition/sample
+# Handle column-name differences across decoupleR versions
 
 score_col     <- c("score","statistic")[c("score","statistic") %in% names(tf_act_long)][1]
 condition_col <- c("condition","sample")[c("condition","sample") %in% names(tf_act_long)][1]
 stopifnot(length(score_col)==1, length(condition_col)==1)
 
-# 转宽：TF x Cell 矩阵
-#计算 TF 活性（decoupleR::run_wmean）=====
+# Reshape activity values to a TF-by-cell matrix
+# Calculate TF activity
 tf_act_long <- decoupleR::run_wmean(
   mat        = E,
   network    = regulons,
@@ -221,13 +221,13 @@ tf_act_long <- decoupleR::run_wmean(
   minsize    = 5
 )
 
-# 选定一个 statistic，避免 TF×cell 多行
-# 建议先看一眼有哪些：
+# Select one statistic per TF-cell pair
+# Inspect available statistics
 table(tf_act_long$statistic)
 tf_act_long <- tf_act_long %>%
-  dplyr::filter(statistic == "corr_wmean")  # 或 "norm_wmean"
+  dplyr::filter(statistic == "corr_wmean")  # Use the selected corr_wmean statistic
 
-# 后面和你原来的逻辑类似，只不过现在每个 TF×cell 只有 1 行了
+# Retain one value per TF-cell pair
 score_col     <- c("score","statistic")[c("score","statistic") %in% names(tf_act_long)][1]
 condition_col <- c("condition","sample")[c("condition","sample") %in% names(tf_act_long)][1]
 stopifnot(length(score_col)==1, length(condition_col)==1)
@@ -239,7 +239,7 @@ tf_by_cell <- tf_act_long %>%
     cell = !!rlang::sym(condition_col),
     score= !!rlang::sym(score_col)
   ) %>%
-  dplyr::mutate(score = as.numeric(score)) %>%  # 保险起见压成 numeric
+  dplyr::mutate(score = as.numeric(score)) %>%  # Coerce scores to numeric
   tidyr::pivot_wider(
     names_from  = cell,
     values_from = score
@@ -247,7 +247,7 @@ tf_by_cell <- tf_act_long %>%
   tibble::column_to_rownames("TF") %>%
   as.matrix()
 
-# 检查行/列
+# Check matrix dimensions
 dim(tf_by_cell)
 head(rownames(tf_by_cell))
 head(colnames(tf_by_cell))
@@ -262,15 +262,15 @@ tf_by_cell=readRDS("tf_by_cell.rds" )
 
 
 
-## ===== 3) PROGENy 通路活性（小鼠）=====
-# progeny 返回：样本 x 通路 或 通路 x 样本（不同版本会变）
+# Calculate mouse PROGENy pathway activity
+# Returned matrix orientation can vary across versions
 path_scores <- progeny(
   E,
   organism  = "Mouse",
-  top       = 500,     # 每条通路用前 500 个 footprint 基因
-  perm      = 1,       # 不做置换，加速
-  z_scores  = TRUE,    # 输出 z-score
-  scale     = TRUE     # 对输入按基因标准化
+  top       = 500,     # Use the top 500 footprint genes per pathway
+  perm      = 1,       # Permutation parameter
+  z_scores  = TRUE,    # Return z-scores
+  scale     = TRUE     # Standardize input expression by gene
 )
 
 dim(path_scores)
@@ -282,12 +282,12 @@ saveRDS(path_scores, file="path_scores.rds")
 path_scores=readRDS("path_scores.rds" ) 
  
 
-# 统一为 Pathway x Cell
+# Orient the matrix as pathways by cells
 if (nrow(path_scores) == ncol(E) && ncol(path_scores) <= 30) {
-  # 这种分布不合理，通常说明方向相反；下面强转
+  # Transpose when the inferred orientation is reversed
   path_by_cell <- t(path_scores)
 } else if (ncol(path_scores) == ncol(E)) {
-  # 行通常是 pathway，列是 cell
+  # Rows represent pathways and columns represent cells
   path_by_cell <- as.matrix(path_scores)
 } else if (nrow(path_scores) == ncol(E)) {
   path_by_cell <- t(as.matrix(path_scores))
@@ -296,7 +296,7 @@ if (nrow(path_scores) == ncol(E) && ncol(path_scores) <= 30) {
 }
 
 
-# 把通路写入 meta.data
+# Store pathway scores in cell metadata
 pw_focus <- intersect(colnames(path_scores), rownames(path_by_cell))
 
  colnames(path_scores)
@@ -311,7 +311,7 @@ if (length(pw_focus)) {
 # ==============================================================================
 # COMPUTE | PROGENy order | original lines 1958-1966 | historical pathway order used by Fig. 2V
 # ==============================================================================
-## 想看的 PROGENy 通路（根据你前面分析用的那批）
+# Select PROGENy pathways for display
 path_focus <- c(
   "TGFb","TNFa","NFkB","JAK-STAT","WNT","MAPK","PI3K",
   "Androgen","Hypoxia","EGFR","Estrogen","p53","Trail","VEGF"
@@ -324,7 +324,7 @@ stopifnot(length(pw_use) >= 2)
 # ==============================================================================
 # COMPUTE | Monocle3 | original lines 3903-3998 | trajectory, historical root rule and pseudotime
 # ==============================================================================
-## ========== 0. 加载依赖 ==========
+# Load dependencies
 suppressPackageStartupMessages({
   library(Seurat)
   library(SeuratWrappers)  # as.cell_data_set
@@ -334,22 +334,22 @@ suppressPackageStartupMessages({
 })
 
 
-## ========== 1. 从 seu_scWAT 构建 CD4 谱系对象 ==========
+# Construct the CD4 lineage object from seu_scWAT
 
-# 1.1 用 active_ident 作为分群列（和你之前保持一致）
+# Set grouping identities from active_ident
 stopifnot("active_ident" %in% colnames(seu_scWAT@meta.data))
 Idents(seu_scWAT) <- "active_ident"
 
-# 1.2 定义 CD4 谱系里要包含的簇名字
-#    这里给一个模板，你可以根据自己的数据在这个向量里增减
+# Specify CD4 lineage cluster labels
+
 cd4_lineage_levels <- c(
   "CD4_T_nonTreg"
 )
-# 只保留确实存在的那些
+# Retain cluster labels present in the object
 cd4_lineage_levels <- intersect(cd4_lineage_levels, levels(seu_scWAT$active_ident))
 stopifnot("CD4_T_nonTreg" %in% cd4_lineage_levels)
 
-# 1.3 抽取 CD4 谱系细胞
+# Subset CD4 lineage cells
 cd4_lineage_cells <- colnames(seu_scWAT)[seu_scWAT$active_ident %in% cd4_lineage_levels]
 length(cd4_lineage_cells)
 
@@ -357,11 +357,11 @@ seu_cd4_lineage <- subset(seu_scWAT, cells = cd4_lineage_cells)
 seu_cd4_lineage$active_ident <- factor(seu_cd4_lineage$active_ident)
 Idents(seu_cd4_lineage) <- "active_ident"
 
-## ========== 2. 确保有 PCA + UMAP ==========
+# Ensure PCA and UMAP embeddings are available
 DefaultAssay(seu_cd4_lineage) <- "RNA"
 
 if (nrow(SeuratObject::GetAssayData(seu_cd4_lineage, assay="RNA", layer="scale.data")) == 0) {
-  # 如果之前没标准化过，这里兜一下底
+  # Normalize expression if the required layer is absent
   seu_cd4_lineage <- NormalizeData(seu_cd4_lineage, verbose = FALSE)
   seu_cd4_lineage <- FindVariableFeatures(seu_cd4_lineage, verbose = FALSE)
   seu_cd4_lineage <- ScaleData(seu_cd4_lineage, verbose = FALSE)
@@ -374,26 +374,26 @@ if (!"umap" %in% names(seu_cd4_lineage@reductions)) {
   seu_cd4_lineage <- RunUMAP(seu_cd4_lineage, dims = 1:20, verbose = FALSE)
 }
 
-## ========== 3. Seurat → monocle3 的 cell_data_set，并学习轨迹 ==========
+# Convert Seurat to a monocle3 cell_data_set and learn the trajectory
 
 cds_cd4 <- as.cell_data_set(seu_cd4_lineage)
 
-# 把 active_ident 带进去（方便之后 root / 可视化）
+# Carry active_ident into the trajectory object
 colData(cds_cd4)$active_ident <- seu_cd4_lineage$active_ident
 
-# 用 Seurat 的 UMAP 作为 monocle3 的 UMAP
+# Use the Seurat UMAP embedding in monocle3
 cds_cd4@int_colData$reducedDims$UMAP <- 
   seu_cd4_lineage@reductions$umap@cell.embeddings
 
-# 用 monocle3 自己的聚类 & learn_graph
+# Cluster cells and learn the principal graph
 cds_cd4 <- cluster_cells(cds_cd4, reduction_method = "UMAP")
 cds_cd4 <- learn_graph(cds_cd4)
 
-## ========== 4. 选择轨迹起点（root）并计算伪时间 ==========
+# Select root cells and calculate pseudotime
 
 cd4_meta_cds <- as.data.frame(colData(cds_cd4))
 
-# 4.1 首选：如果有显式的 "CD4_T_act" / "CD4_T_naive" 簇，用它们当 root
+# Prefer explicit activated or naive CD4 cluster labels for root selection
 root_cells <- character(0)
 
 if ("CD4_T_act" %in% cd4_meta_cds$active_ident) {
@@ -402,9 +402,9 @@ if ("CD4_T_act" %in% cd4_meta_cds$active_ident) {
   root_cells <- rownames(cd4_meta_cds)[cd4_meta_cds$active_ident == "CD4_T_naive"]
 }
 
-# 4.2 如果没有明确 ACT/naive 簇，则退而求其次：用 ANERGY/ACT 打分自动找一批高 ACT 低 ANERGY 的 root
+# Otherwise select high-ACT, low-ANERGY cells as roots
 if (length(root_cells) == 0) {
-  # 需要保证你在 seu_cd4_nonTreg 里确实有 ACT_GSVA / ANERGY_GSVA
+  # This fallback requires ACT_GSVA and ANERGY_GSVA scores
   if (all(c("ACT_GSVA","ANERGY_GSVA") %in% colnames(seu_cd4_nonTreg@meta.data))) {
     tmp <- seu_cd4_nonTreg@meta.data
     tmp$cell <- rownames(tmp)
@@ -417,7 +417,7 @@ if (length(root_cells) == 0) {
 
 stopifnot("没有找到合适的 root 细胞，请检查 active_ident 或 ANERGY/ACT 分数。" = length(root_cells) > 0)
 
-# 4.3 计算伪时间
+# Calculate pseudotime
 cds_cd4 <- order_cells(cds_cd4, root_cells = root_cells)
 pt_all  <- pseudotime(cds_cd4)   # Named numeric vector：names = cell barcodes
 
@@ -431,24 +431,24 @@ seu_ASC <- subset(seu_scWAT, idents = c("ASC_CD105pos_CD90pos",
 # ==============================================================================
 # COMPUTE | ASC-CD4 LIANA input | original lines 2740-2792 | historical ASC-CD4 subset and LR_group
 # ==============================================================================
-##### 0) 前提：看一下 meta 列
+# Inspect metadata columns
 colnames(seu_scWAT@meta.data)
 table(seu_scWAT$ASC_CD90_CD105)
 table(seu_scWAT$active_ident)
 
-## 1) 定义要保留的群体名称 --------------------------
-# 按你现在的说法：两个 ASC 组 + 1 个 CD4_T_nonTreg
-asc_groups <- c("ASC_CD105pos_CD90pos", "ASC_CD105neg_CD90pos","ASC_other")  # 如有第三个 ASC 组，直接在这里加
+# Define the retained cell populations
+# Include the selected ASC groups and CD4_T_nonTreg cells
+asc_groups <- c("ASC_CD105pos_CD90pos", "ASC_CD105neg_CD90pos","ASC_other")  
 cd4_group  <- "CD4_T_nonTreg"
 
-## 2) 在原始对象中找这些细胞 ------------------------
-# ASC 细胞（基于 ASC_CD90_CD105 列）
+# Identify the selected cells in the original object
+# Select ASC cells using ASC_CD90_CD105
 asc_cells <- WhichCells(
   seu_scWAT,
   expression = ASC_CD90_CD105 %in% asc_groups
 )
 
-# CD4_T_nonTreg 细胞（基于 active_ident 列）
+# Select CD4_T_nonTreg cells using active_ident
 cd4_cells <- WhichCells(
   seu_cd4_nonTreg,
   expression = active_ident == cd4_group
@@ -456,34 +456,34 @@ cd4_cells <- WhichCells(
 
 length(asc_cells); length(cd4_cells)
 
-## 3) 合并细胞名 & 构建子对象 ------------------------
+# Combine cell names and construct the subset
 cells_use <- unique(c(asc_cells, cd4_cells))
 
 seu_LR <- subset(seu_scWAT, cells = cells_use)
 seu_LR
 
-## 4) 定义 LR 分组列：ASC 子群 + CD4_T_nonTreg ----------
+# Define ligand-receptor analysis groups
 seu_LR$LR_group <- NA_character_
 
-# ASC 用 ASC_CD90_CD105 的标签
+# Use ASC_CD90_CD105 labels for ASC groups
 is_asc <- seu_LR$ASC_CD90_CD105 %in% asc_groups
 seu_LR$LR_group[is_asc] <- as.character(seu_LR$ASC_CD90_CD105[is_asc])
 
-# CD4_T_nonTreg 用 active_ident 标记
+# Use active_ident for the CD4_T_nonTreg group
 is_cd4 <- seu_LR$active_ident == cd4_group
 seu_LR$LR_group[is_cd4] <- cd4_group
 
 table(seu_LR$LR_group, useNA = "ifany")
 
-# 去掉任何 LR_group 仍为 NA 的细胞（理论上应该没有）
+# Remove cells without an LR_group label
 seu_LR <- subset(seu_LR, subset = !is.na(LR_group))
 
-# 设置 Idents
+# Set active identities
 Idents(seu_LR) <- "LR_group"
 
-# 确认 RNA assay 已标准化
+# Ensure the RNA assay has normalized expression
 DefaultAssay(seu_LR) <- "RNA"
-# 只包含 ASC 各亚群 + CD4_T_nonTreg 的新对象 seu_LR，后面所有 LR 分析都在它上面做。
+# Use seu_LR for the selected ASC and CD4 ligand-receptor analyses
 
 # [INTERFACE FIX LIANA-02] SeuratObject 5 compatibility: pass the unchanged
 # expression matrix and LR_group labels through SingleCellExperiment.
@@ -559,35 +559,35 @@ p.CD4.ssgsea=pheatmap(sc_ssgsea,cluster_rows = T, cluster_cols = T, show_rowname
 p.CD4.ssgsea
 p.CD4.gsva=pheatmap(sc_gsva, cluster_rows = T, cluster_cols = T, show_rownames = T, show_colnames = F,main = "GSVA")
 
-######调整展示顺序
-# 设置自定义的行名顺序
+# Set display order
+# Specify row order
 row_order <- c("ANERGY",  "ACT","EXH","TH1", "TH2", "TH17", "TFH")
 
-# 确保行名顺序符合期望的顺序
+# Align rows with the requested order
 sc_ssgsea <- sc_ssgsea[row_order, , drop = FALSE]
 
-# 绘制热图，行名按照设置的顺序排列
+# Draw the ordered heatmap
 p.CD4.ssgsea <- pheatmap(
   sc_ssgsea, 
-  cluster_rows = F,     # 对行进行聚类
-  cluster_cols = TRUE,     # 对列进行聚类
-  show_rownames = TRUE,    # 显示行名
-  show_colnames = FALSE,   # 不显示列名
-  color = colorRampPalette(c("#4675B5",  "white", "red"))(50),  # 色标设置
+  cluster_rows = F,     # Cluster rows
+  cluster_cols = TRUE,     # Cluster columns
+  show_rownames = TRUE,    # Show row labels
+  show_colnames = FALSE,   # Hide column labels
+  color = colorRampPalette(c("#4675B5",  "white", "red"))(50),  # Color scale
   fontsize = 10,
   treeheight_col = 0,
-  main = "ssGSEA"          # 热图标题
+  main = "ssGSEA"          # Heatmap title
 )
-# 输出热图
+# Display the heatmap
 p.CD4.ssgsea
 
-# 保存热图为 PDF 文件
+# Save the heatmap as PDF
 ggsave("CD4_ssGSEA_heatmap.pdf", plot = p.CD4.ssgsea, width = 8, height = 6, dpi = 300)
 
 # ==============================================================================
 # FIGURE 1 | D | original lines 1425-1456 | ANERGY ACT EXH violin
 # ==============================================================================
-# 只选 ssGSEA 列
+# Select ssGSEA score columns
 ss_cols <- c("ANERGY_ssGSEA","ACT_ssGSEA","EXH_ssGSEA")
 ss_cols <- intersect(ss_cols, colnames(seu_cd4_nonTreg@meta.data))
 
@@ -623,9 +623,9 @@ ggsave("CD4_ANERGY_ACT_EXH_ssGSEA_violin.pdf",
 # ==============================================================================
 # FIGURE 1 | E | original lines 1458-1502 | dominant state fraction
 # ==============================================================================
-###计算细胞比例
+# Calculate cell-state proportions
 
-# 用 ssGSEA 作为例子
+# Use ssGSEA scores for dominant-state assignment
 ss_cols <- c("ANERGY_ssGSEA","ACT_ssGSEA","EXH_ssGSEA")
 ss_cols <- intersect(ss_cols, colnames(seu_cd4_nonTreg@meta.data))
 
@@ -633,7 +633,7 @@ df_ss_wide <- seu_cd4_nonTreg@meta.data %>%
   dplyr::select(all_of(ss_cols)) %>%
   tibble::rownames_to_column("cell")
 
-# 计算每个细胞的“max program”
+# Assign the highest-scoring program to each cell
 df_ss_dom <- df_ss_wide %>%
   dplyr::rowwise() %>%
   dplyr::mutate(
@@ -646,7 +646,7 @@ df_ss_dom <- df_ss_wide %>%
 table(df_ss_dom$max_program)
 prop.table(table(df_ss_dom$max_program))
 
-# 画成条形图
+# Plot state proportions as bars
 df_ss_bar <- as.data.frame(prop.table(table(df_ss_dom$max_program))) %>%
   dplyr::rename(program = Var1, fraction = Freq) %>%
   dplyr::mutate(program = factor(program, levels = c("ANERGY","ACT","EXH")))
@@ -672,31 +672,31 @@ ggsave("CD4_ANERGY_ACT_EXH_dominant_fraction_ssGSEA.pdf",
 # ==============================================================================
 # FIGURE 1 | F | original lines 4344-4392 | Monocle3 pseudotime UMAP
 # ==============================================================================
-####1. 从 cds_cd4 提取 UMAP & pseudotime，并对齐到 Seurat
+# Extract UMAP and pseudotime and align cells with Seurat
 
 library(monocle3)
 library(Seurat)
 library(dplyr)
 library(ggplot2)
 
-## 1) 从 monocle3 取 UMAP 坐标 & 伪时间
+# Retrieve UMAP coordinates and pseudotime from monocle3
 umap_cds <- reducedDims(cds_cd4)$UMAP  # matrix: cells x 2
 pt_vec   <- pseudotime(cds_cd4)       # Named numeric vector
 
-# 确保顺序按 cell name 对齐
+# Align by cell name
 common_cells <- intersect(rownames(umap_cds), colnames(seu_cd4_nonTreg))
-length(common_cells)   # 应该是 CD4_T_nonTreg 的细胞数
+length(common_cells)   # Check the CD4_T_nonTreg cell count
 
 umap_use <- umap_cds[common_cells, , drop = FALSE]
 pt_use   <- as.numeric(pt_vec[common_cells])
 
-## 2) 把 pseudotime 写回 Seurat 对象
+# Store pseudotime in the Seurat object
 seu_cd4_nonTreg$monocle_pt <- NA_real_
 seu_cd4_nonTreg$monocle_pt[common_cells] <- pt_use
 
-## 2. 手工画 “UMAP + pseudotime” 散点图
+# Plot UMAP colored by pseudotime
 
-## 3) 组装一个 data.frame 用于 ggplot
+# Construct the ggplot data frame
 df_pt <- data.frame(
   cell    = common_cells,
   UMAP_1  = umap_use[common_cells, 1],
@@ -708,7 +708,7 @@ df_pt <- data.frame(
   EXH     = seu_cd4_nonTreg$EXH_ssGSEA[common_cells]
 )
 
-## 4) 伪时间着色 UMAP
+# Color UMAP points by pseudotime
 p_pt <- ggplot(df_pt, aes(x = UMAP_1, y = UMAP_2, colour = pt)) +
   geom_point(size = 0.3, alpha = 0.8) +
   scale_colour_viridis_c(option = "plasma") +
@@ -725,14 +725,14 @@ ggsave("CD4_T_nonTreg_UMAP_pseudotime_manual.pdf",
 # ==============================================================================
 # FIGURE 1 | G | original lines 4394-4422 | state trends along pseudotime
 # ==============================================================================
-## 3. 沿伪时间看 ANERGY / ACT / EXH 的趋势
+# Examine ANERGY, ACT and EXH scores along pseudotime
 
-## 5) 只保留有完整分数的细胞
+# Retain cells with complete scores
 df_score <- df_pt %>%
   select(pt, ANERGY, ACT, EXH) %>%
   tidyr::drop_na()
 
-## 6) 长格式：方便用 facet 画多条曲线
+# Reshape scores to long format for faceted plots
 df_long <- df_score %>%
   tidyr::pivot_longer(
     cols      = c(ANERGY, ACT, EXH),
@@ -740,7 +740,7 @@ df_long <- df_score %>%
     values_to = "score"
   )
 
-## 7) 伪时间上的平滑曲线（GAM 或 loess）
+# Fit smooth score trends along pseudotime
 p_trend <- ggplot(df_long, aes(x = pt, y = score, colour = module)) +
   geom_point(size = 0.2, alpha = 0.2) +
   geom_smooth(se = FALSE, method = "gam", formula = y ~ s(x, k = 5)) +
@@ -758,7 +758,7 @@ ggsave("CD4_T_nonTreg_module_scores_vs_pseudotime.pdf",
 # ==============================================================================
 # FIGURE 1 | H-N | original lines 1102-1145 | historical combined ssGSEA FeaturePlot
 # ==============================================================================
-# 小提琴图展示 GSVA 和 ssGSEA 分数
+# Plot GSVA and ssGSEA scores as violin plots
 library(Seurat)
 library(ggplot2)
 
@@ -769,14 +769,14 @@ score_cols_GSVA <- c("ANERGY_GSVA", "ACT_GSVA", "EXH_GSVA", "TH1_GSVA", "TH2_GSV
 
 score_cols_ssGSEA <- c("ANERGY_ssGSEA", "ACT_ssGSEA", "EXH_ssGSEA", "TH1_ssGSEA", "TH2_ssGSEA", "TH17_ssGSEA", "TFH_ssGSEA")
 
-# 计算相关性矩阵
+# Compute the correlation matrix
 score_data <- seu_cd4_nonTreg@meta.data[, score_cols]
 corr_matrix <- cor(score_data, method = "spearman", use = "pairwise.complete.obs")
 
-# 使用 pheatmap 绘制相关性热图
+# Plot the correlation heatmap
 library(pheatmap)
 p_corr_GSVA_ssGSEA=pheatmap(corr_matrix, 
-                            color = colorRampPalette(c("#4675B5",  "white", "red"))(50),  # 色标设置
+                            color = colorRampPalette(c("#4675B5",  "white", "red"))(50),  # Color scale
                             fontsize = 10,
                             treeheight_col = 0,
                             treeheight_row  = 0,
@@ -789,7 +789,7 @@ p_corr_GSVA_ssGSEA
 
 ggsave("CD4_corr_GSVA_ssGSEA_heatmap.pdf", plot = p_corr_GSVA_ssGSEA, width = 6, height = 6, dpi = 600)
 
-# 如果seu_cd4_nonTreg中已有UMAP降维结果，直接可视化
+# Plot the existing CD4_T_nonTreg UMAP
 featureplot_ssGSEA=FeaturePlot(seu_cd4_nonTreg, 
                                features = score_cols_ssGSEA, 
                                cols = c("#FAF5C1", "#D53127"), 
@@ -806,9 +806,9 @@ ggsave("CD4_ssGSEA_FeaturePlot.pdf",
 # ==============================================================================
 # FIGURE 2 | A-E | original lines 2255-2313 | historical combined TF FeaturePlot
 # ==============================================================================
-#######在 CD4_T_nonTreg UMAP 上叠加 ANERGY + 5 个 TF 活性 + NOTCH_PROGENY#############
+# Display ANERGY, selected TF activities and NOTCH_PROGENY on UMAP
 
-## ========= 2) UMAP 叠加 ANERGY + 5 个 TF + NOTCH_PROGENY =========
+# UMAP overlays for state and activity scores
 
 library(Seurat)
 library(ggplot2)
@@ -818,7 +818,7 @@ library(dplyr)
 
 DefaultAssay(seu_cd4_nonTreg) <- "RNA"
 
-## 2.1 把 5 个 TF 活性写回 meta.data（如果之前没写过可以执行这段）
+# Store the selected TF activities in metadata
 
 tf_focus <- intersect(
   c("Nr4a1","Nr4a2","Nr4a3","Ahr","Rara","Rarg","Rbpj","Creb1"),
@@ -835,12 +835,12 @@ if (length(tf_focus) > 0) {
 }
 
 
-## 2.4 需要展示的 features 列表
+# Specify features to display
 
 feature_list <- c(
-  # 状态分数（你也可以改/追加 GSVA/MSCORE 等）
+  # State-score columns
   "ANERGY_ssGSEA", "ACT_ssGSEA", "EXH_ssGSEA",
-  # 5个 TF 活性
+  # Selected TF activity columns
   "Nr4a1_ACT",
   "Ahr_ACT","Rara_ACT","Rbpj_ACT","Creb1_ACT"
 )
@@ -848,7 +848,7 @@ feature_list <- c(
 feature_list <- feature_list[feature_list %in% colnames(seu_cd4_nonTreg@meta.data)]
 feature_list
 
-## 2.5 UMAP 特征图
+# Plot UMAP feature maps
 
 p_umap <- FeaturePlot(
   seu_cd4_nonTreg,
@@ -869,20 +869,20 @@ ggsave(
 # ==============================================================================
 # FIGURE 2 | F | original lines 2315-2438 | ANERGY high-low TF activity
 # ==============================================================================
-##TF和ANERGY 分数分析
+# Compare TF activities by anergy-score group
 library(Seurat)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
 
-# 1) 从 meta.data 里挑一个你最想用来分层的 ANERGY 分数
+# Select the ANERGY score used for stratification
 cand_cols <- c("ANERGY_ssGSEA", "ANERGY_GSVA", "ANERGY_AUCell", "ANERGY_MSCORE")
 an_col    <- cand_cols[cand_cols %in% colnames(seu_cd4_nonTreg@meta.data)][1]
 stopifnot(length(an_col) == 1)
 
 seu_cd4_nonTreg$ANERGY_score_main <- seu_cd4_nonTreg@meta.data[[an_col]]
 
-# 2) 用四分位数把细胞分成 Low / Mid / High 三档
+# Define Low, Mid and High groups using score quartiles
 q <- quantile(seu_cd4_nonTreg$ANERGY_score_main, c(0.25, 0.75), na.rm = TRUE)
 seu_cd4_nonTreg$ANERGY_group <- cut(
   seu_cd4_nonTreg$ANERGY_score_main,
@@ -892,15 +892,15 @@ seu_cd4_nonTreg$ANERGY_group <- cut(
 )
 
 
-# 你关注的 TF
+# Selected transcription factors
 tf_focus <- c("Rbpj", "Nr4a1", "Creb1", "Ahr", "Rara")
 
-# 看看哪些 *_ACT 列已经存在，哪些需要从 tf_by_cell 里补
+# Identify existing activity columns and those to import from tf_by_cell
 tf_act_cols <- paste0(tf_focus, "_ACT")
 missing_tf  <- tf_focus[!tf_act_cols %in% colnames(seu_cd4_nonTreg@meta.data)]
 
 if (length(missing_tf) > 0) {
-  stopifnot(exists("tf_by_cell"))  # 确保你运行 DoRothEA/decoupleR 时生成了这个矩阵
+  stopifnot(exists("tf_by_cell"))  # Use the activity matrix generated by DoRothEA/decoupleR
   
   common_cells <- intersect(colnames(tf_by_cell), colnames(seu_cd4_nonTreg))
   
@@ -909,7 +909,7 @@ if (length(missing_tf) > 0) {
     
     v <- as.numeric(tf_by_cell[tf, common_cells])
     
-    # 对齐到 Seurat 对象的细胞顺序
+    # Align activity values to Seurat cell order
     tmp <- rep(NA_real_, ncol(seu_cd4_nonTreg))
     names(tmp) <- colnames(seu_cd4_nonTreg)
     tmp[common_cells] <- v
@@ -919,11 +919,11 @@ if (length(missing_tf) > 0) {
 }
 
 
-# 真实存在的 TF 列
+# Retain available TF columns
 score_cols_tf <- paste0(tf_focus, "_ACT")
 score_cols_tf <- score_cols_tf[score_cols_tf %in% colnames(seu_cd4_nonTreg@meta.data)]
 
-# 只看 ANERGY 低 & 高两组（去掉中间档）
+# Compare ANERGY Low and High groups, excluding Mid
 df_tf <- seu_cd4_nonTreg@meta.data %>%
   dplyr::select(ANERGY_group, all_of(score_cols_tf)) %>%
   dplyr::filter(!is.na(ANERGY_group), ANERGY_group != "Mid") %>%
@@ -937,7 +937,7 @@ df_tf <- seu_cd4_nonTreg@meta.data %>%
     ANERGY_group = factor(ANERGY_group, levels = c("Low", "High"))
   )
 
-# 画图：每个 TF 一格，比较 Low vs High
+# Plot each TF in a separate comparison panel
 p_tf_violin <- ggplot(df_tf, aes(x = ANERGY_group, y = activity, fill = ANERGY_group)) +
   geom_violin(trim = TRUE, scale = "width") +
   geom_boxplot(width = 0.2, outlier.size = 0.2, color = "black",
@@ -963,24 +963,24 @@ ggsave("Fig2A_TF_activity_ANERGY_high_vs_low.pdf",
        p_tf_violin, width = 8, height = 3.5, dpi = 300)
 
 
-###计算每个TFTF 在 ANERGY Low vs High 之间的 p 值
+# Calculate TF activity comparison P values
 library(dplyr)
 
-# 你的 5 个 TF 活性列
+# TF activity columns
 tf_features <- c("Rbpj_ACT","Nr4a1_ACT","Creb1_ACT","Ahr_ACT","Rara_ACT")
 
 meta <- seu_cd4_nonTreg@meta.data
 
-# 只保留有分组的细胞（Low/High）
+# Retain cells in the Low or High group
 df_tf <- meta %>%
   filter(!is.na(ANERGY_group)) %>%
   select(ANERGY_group, all_of(tf_features))
 
-# 对每个 TF 做 Wilcoxon 秩和检验（High vs Low）
+# Apply Wilcoxon rank-sum tests to High versus Low groups
 tf_pvals <- sapply(tf_features, function(tf) {
   g1 <- df_tf %>% filter(ANERGY_group == "Low")  %>% pull(tf)
   g2 <- df_tf %>% filter(ANERGY_group == "High") %>% pull(tf)
-  wilcox.test(g2, g1)$p.value   # 高 vs 低
+  wilcox.test(g2, g1)$p.value   # High versus Low comparison
 })
 
 tf_padj <- p.adjust(tf_pvals, method = "BH")
@@ -997,16 +997,16 @@ write.csv(x =tf_stats,file = "TF_stats.csv",row.names = T)
 # ==============================================================================
 # FIGURE 2 | G | original lines 2142-2253 | TF-state correlation
 # ==============================================================================
-## ===== 5) 状态分数 vs TF 活性相关性（Spearman）=====
-## ===== A) 定位状态分数列（和 PROGENy 那段保持一致）=====
-# 1) 所有状态评分列（AUCell / GSVA / ssGSEA / MSCORE）
+# Spearman correlations between state scores and TF activities
+# Identify state-score columns
+# Collect AUCell, GSVA, ssGSEA and MSCORE columns
 score_cols_all <- grep(
   "_(AUCell|ssGSEA|MSCORE|GSVA)$",
   colnames(seu_cd4_nonTreg@meta.data),
   value = TRUE
 )
 
-# 2) 只保留 ANERGY / ACT / EXH 这些前缀（和你现在设定一致）
+# Retain ANERGY, ACT and EXH prefixes
 keep_prefix <- c("ANERGY", "ACT", "EXH")
 pattern <- paste0("^(", paste(keep_prefix, collapse = "|"), ")")
 score_cols <- score_cols_all[ grepl(pattern, score_cols_all) ]
@@ -1014,8 +1014,8 @@ score_cols <- score_cols_all[ grepl(pattern, score_cols_all) ]
 length(score_cols)
 score_cols
 
-## ===== B) 选 TF：可以先聚焦一批感兴趣的 TF =====
-## 你之前关注：RBPJ/NOTCH, AHR, RARA/RARG, CREB/NR4A1-3 等
+# Select transcription factors for correlation analysis
+# Candidates include RBPJ, AHR, RARA/RARG, CREB and NR4A factors
 library(dplyr)
 library(tidyr)
 library(tibble)
@@ -1029,17 +1029,17 @@ tf_use <- intersect(tf_focus, rownames(tf_by_cell))
 common_cells <- intersect(colnames(tf_by_cell),
                           rownames(seu_cd4_nonTreg@meta.data))
 
-## 状态分数：cells × state_scores
+# State-score matrix: cells by scores
 df_scores <- seu_cd4_nonTreg@meta.data[common_cells, score_cols, drop = FALSE] |>
   as.data.frame()
 df_scores[] <- lapply(df_scores, as.numeric)
 
-## TF 活性：cells × TF
+# TF activity matrix: cells by TFs
 df_tf <- t(tf_by_cell[tf_use, common_cells, drop = FALSE]) |>
   as.data.frame()
 df_tf[] <- lapply(df_tf, as.numeric)
 
-## Spearman 相关：模块 × TF
+# Compute state-score-by-TF Spearman correlations
 cor_tf <- matrix(
   NA_real_,
   nrow = ncol(df_scores),
@@ -1059,7 +1059,7 @@ for (i in seq_len(ncol(df_scores))) {
 
 cor_tf
 
-## 4.6 按你想要的 ANERGY/ACT/EXH 顺序排行
+# Order rows by ANERGY, ACT and EXH
 
 row_order <- c(
   "ANERGY_ssGSEA", "ANERGY_GSVA", "ANERGY_AUCell", "ANERGY_MSCORE",
@@ -1069,7 +1069,7 @@ row_order <- c(
 row_order_use <- row_order[row_order %in% rownames(cor_tf)]
 cor_tf_plot   <- cor_tf[row_order_use, , drop = FALSE]
 
-## 4.7 去掉全 NA 行/列，并把残余 NaN/Inf 设成 0，避免 hclust 报错
+# Remove nonfinite-only rows/columns and replace remaining nonfinite values with zero
 
 finite_row <- rowSums(is.finite(cor_tf_plot)) > 0
 finite_col <- colSums(is.finite(cor_tf_plot)) > 0
@@ -1080,10 +1080,10 @@ cor_tf_plot
 
 write.csv(cor_tf_plot, "CD4_TF_vs_state_ANERGY_ACT_EXH_scores_correlation.csv", row.names = FALSE)
 
-saveRDS(cor_tf_plot, file="cor_tf_plot.rds") ####保存分析后的数据，方便下次直接读取。
+saveRDS(cor_tf_plot, file="cor_tf_plot.rds") # Save the processed object
 
 
-## 4.8 画热图
+# Plot the correlation heatmap
 library(pheatmap)
 p_tf_cor <- pheatmap::pheatmap(
   cor_tf_plot,
@@ -1093,8 +1093,8 @@ p_tf_cor <- pheatmap::pheatmap(
   show_colnames = TRUE,
   angle_col     = 45,
   scale         = "none",
-  cellwidth = 18,     # 设定cell 的大小
-  cellheight = 18,      # 设定cell 的大小
+  cellwidth = 18,     # Heatmap cell height
+  cellheight = 18,      # Heatmap cell width
   color         = colorRampPalette(c("#4675B5","white","red"))(50),
   main          = "Correlation: TF activity vs ANERGY/ACT/EXH scores (CD4_T_nonTreg)",
   fontsize      = 8
@@ -1113,11 +1113,11 @@ ggsave(
 # ==============================================================================
 # FIGURE 2 | H-U | original lines 1871-1885 | historical combined PROGENy FeaturePlot
 # ==============================================================================
-######################可视化及相关性分析########################################
+# Visualization and correlation analysis
 p_progeny_umap <- FeaturePlot(
   seu_cd4_nonTreg,
   features    = pw_cols,
-  reduction   = "umap",      # 你 UMAP 的名字如果不是 "umap"，改这里
+  reduction   = "umap",      # Specify the UMAP reduction name
   min.cutoff  = "q05",
   max.cutoff  = "q95",
   order       = TRUE,
@@ -1133,23 +1133,23 @@ ggsave("Fig2H_CD4_PROGENY_pathways_UMAP.pdf",
 # FIGURE 2 | V | original lines 1888-1948 | PROGENy heatmap ordered by pseudotime
 # ==============================================================================
 library(pheatmap)
-pt_col <- "monocle3_pseudotime"   # 或者你实际用的列名，比如 "pseudotime"
+pt_col <- "monocle3_pseudotime"   # Specify the pseudotime metadata column
 
-# 1) 从 meta.data 里取出伪时间这一列
+# Extract pseudotime from metadata
 pt_vec <- seu_cd4_nonTreg@meta.data[[pt_col]]
 
-# 2) 如果不小心是 data.frame/tibble，就取第一列
+# Use the first column if returned as a data frame
 if (is.data.frame(pt_vec)) {
   pt_vec <- pt_vec[[1]]
 }
 
-# 3) 强制转成数值型
+# Coerce pseudotime to numeric
 pt_vec <- as.numeric(pt_vec)
 
-# 4) 检查一下有没有 NA
+# Check missing values
 summary(pt_vec)
 
-# 5) 按伪时间排序细胞
+# Order cells by pseudotime
 cell_order <- colnames(seu_cd4_nonTreg)[order(pt_vec)]
 length(cell_order)
 head(cell_order)
@@ -1157,11 +1157,11 @@ head(cell_order)
 
 mat_pw <- path_by_cell[pw_use, cell_order, drop = FALSE]
 
-# 可选：z-score 按行标准化，让色阶更好看
-mat_pw_scaled <- t(scale(t(mat_pw)))  # 行 z-score
+# Apply gene-wise z-score scaling
+mat_pw_scaled <- t(scale(t(mat_pw)))  # Row-wise z-score
 
-# 细胞注释：比如按 ANERGY 高/低，或伪时间分组
-# 这里举例按 ANERGY_ssGSEA 四分位分组
+# Construct cell annotations
+# Use ANERGY_ssGSEA quartile groups
 if ("monocle3_pseudotime" %in% colnames(seu_cd4_nonTreg@meta.data)) {
   pseudotime_vec <- seu_cd4_nonTreg$monocle3_pseudotime[cell_order]
   q <- quantile(pseudotime_vec, c(0.25, 0.75), na.rm = TRUE)
@@ -1251,7 +1251,7 @@ features_vascular_marker <- c(
   "Rgs5",
   "Tek",    # Tie2
   "Lyve1",  # lymphatic / vascular-associated
-  "Pdgfra") # ASC/stromal marker，放在血管组末尾作为过渡
+  "Pdgfra") # ASC/stromal markers displayed after vascular markers
 
 dot_plot_vascular <- DotPlot(
   seu_ASC,
@@ -1390,20 +1390,20 @@ ggsave("CD4_ASC_UMAP.pdf", plot = plot.LR.umap, width = 10, height = 6)
 # ==============================================================================
 # FIGURE 3 | F | original lines 2928-2971 | global LIANA communication strength
 # ==============================================================================
-##### 1. 全局通讯强度矩阵（所有 group 间的整体强度）#####
+# Aggregate communication scores across all groups
 library(dplyr)
 library(tidyr)
 library(pheatmap)
 
-## 1.1 计算 source × target 的平均通讯强度
+# Compute mean communication scores by source-target pair
 comm_mat <- liana_agg %>%
   group_by(source, target) %>%
   summarise(
-    mean_rank = mean(aggregate_rank, na.rm = TRUE),  # 小=强
+    mean_rank = mean(aggregate_rank, na.rm = TRUE),  # Smaller aggregate ranks indicate stronger support
     .groups   = "drop"
   ) %>%
   mutate(
-    score = 1 - mean_rank  # 转成“越大越强”，直观一点
+    score = 1 - mean_rank  # Transform ranks so larger values indicate stronger support
   ) %>%
   select(source, target, score) %>%
   pivot_wider(names_from = target, values_from = score, values_fill = 0)
@@ -1412,7 +1412,7 @@ comm_mat_mat <- comm_mat %>%
   tibble::column_to_rownames("source") %>%
   as.matrix()
 
-## 1.2 画 heatmap
+# Plot the communication heatmap
 p_comm <- pheatmap(
   comm_mat_mat,
   cluster_rows = T,
@@ -1420,8 +1420,8 @@ p_comm <- pheatmap(
   color        = colorRampPalette(c("#4675B5", "white", "red"))(50),
   main         = "Global communication strength (LIANA aggregate)",
   fontsize     = 8,
-  cellwidth = 18,     # 设定cell 的大小
-  cellheight = 18,      # 设定cell 的大小
+  cellwidth = 18,     # Heatmap cell height
+  cellheight = 18,      # Heatmap cell width
   angle_col    = 45,
   treeheight_row=0,
   treeheight_col=0,
@@ -1443,19 +1443,19 @@ asc_groups <- c("ASC_CD105pos_CD90pos",
                 "ASC_other")
 cd4_group  <- "CD4_T_nonTreg"
 
-## ===== 1. 聚合 LIANA 结果，并补 ligand / receptor 列 =====
+# Aggregate LIANA results and add ligand/receptor columns
 
 liana_agg <- liana_aggregate(liana_res)
 
-# MouseConsensus 聚合表里只有 ligand.complex / receptor.complex
-# 为了方便后面 dplyr 操作，这里显式复制成 ligand / receptor
+# MouseConsensus output provides ligand.complex and receptor.complex
+# Copy these fields to ligand and receptor for downstream operations
 liana_agg <- liana_agg %>%
   mutate(
     ligand   = ligand.complex,
     receptor = receptor.complex
   )
 
-## ===== 2. 取 ASC → CD4_T_nonTreg 的所有 LR  =====
+# Select ASC-to-CD4_T_nonTreg ligand-receptor pairs
 
 asc_to_cd4 <- liana_agg %>%
   dplyr::filter(
@@ -1464,19 +1464,19 @@ asc_to_cd4 <- liana_agg %>%
   ) %>%
   mutate(
     lr_pair    = paste(ligand, receptor, sep = "_"),
-    rank_score = 1 - aggregate_rank   # 把 “越小越好” 的 rank 变成 “越大越强”
+    rank_score = 1 - aggregate_rank   # Transform aggregate ranks to a larger-is-stronger score
   )
 
-## ===== 3. 抽取 JAG1–NOTCH1 轴，并画一个柱状图比较三个 ASC 群 =====
+# Compare predicted JAG1-NOTCH1 communication across ASC groups
 
 jag1_notch1 <- asc_to_cd4 %>%
   dplyr::filter(ligand == "Jag1", receptor == "Notch1") %>%
   mutate(axis_name = "JAG1_NOTCH1")
 
-# 看一下三组有没有都出现
+# Inspect represented groups
 jag1_notch1 %>% dplyr::select(source, target, rank_score)
 
-# 为了在 x 轴上按你习惯的顺序排 ASC 三群
+# Specify the ASC group order on the x-axis
 jag1_notch1$source <- factor(jag1_notch1$source, levels = asc_groups)
 
 p_jag1_bar <- ggplot(jag1_notch1,
@@ -1500,14 +1500,14 @@ p_jag1_bar
 ggsave("Fig3D_JAG1_NOTCH1_ASC_to_CD4_bar.pdf",
        p_jag1_bar, width = 4.5, height = 4, dpi = 600)
 
-## 这张图对应你文中的句子：
+# Manuscript-related communication summary
 ## “JAG1–NOTCH1 as a top candidate axis emanating from ASC_CD105pos_CD90pos
 ##  towards CD4_T_nonTreg, with markedly higher consensus scores than the same
 ##  axis originating from ASC_CD105neg_CD90pos or ASC_other.”
 
-## ===== 4. 辅助图：各 ASC 群对 CD4 的 top LR + 高亮 JAG1–NOTCH1  =====
+# Plot top ligand-receptor pairs and highlight JAG1-NOTCH1
 
-topN <- 50   # 每个 ASC 群取前 N 条 LR（按 aggregate_rank）
+topN <- 50   # Select the top N ligand-receptor pairs per ASC group by aggregate_rank
 
 top_axes <- asc_to_cd4 %>%
   group_by(source) %>%
@@ -1589,7 +1589,7 @@ p.L.R=FeaturePlot(object = seu_LR,
                   label = F)
 p.L.R
 
-## 保存 PDF
+# Save as PDF
 ggsave("CD4_ASC_LRaxes_FeaturePlot.pdf",
        plot   = p.L.R,
        width  = 18,
@@ -1604,7 +1604,7 @@ p.CD4.gsva=pheatmap(sc_gsva,
                     cluster_cols = T, 
                     show_rownames = T, 
                     show_colnames = F,
-                    color = colorRampPalette(c("#4675B5",  "white", "red"))(50),  # 色标设置
+                    color = colorRampPalette(c("#4675B5",  "white", "red"))(50),  # Color scale
                     fontsize = 10,
                     treeheight_col = 0,
                     main = "GSVA")
@@ -1615,22 +1615,22 @@ ggsave("CD4_GSVA_heatmap.pdf", plot = p.CD4.gsva, width = 8, height = 6, dpi = 6
 # ==============================================================================
 # FIGURE S1 | B | original lines 1223-1246 | AUCell heatmap
 # ==============================================================================
-# 绘制基因集 AUC 值的热图
+# Plot gene-set AUC heatmap
 library(pheatmap)
 
-# 提取 AUC 值矩阵
+# Extract AUC values
 auc_mat <- as.matrix(AUCell::getAUC(cells_AUC))
 
-# 绘制热图
+# Draw the heatmap
 CD4_AUCell_pheatmap=pheatmap(auc_mat,
-         cluster_rows = F,   # 聚类行
-         cluster_cols = TRUE,   # 聚类列
-         show_rownames = TRUE,  # 显示行名（基因集）
-         show_colnames = FALSE, # 不显示列名（细胞）
+         cluster_rows = F,   # Cluster rows
+         cluster_cols = TRUE,   # Cluster columns
+         show_rownames = TRUE,  # Show gene-set labels
+         show_colnames = FALSE, # Hide cell labels
          main = "AUCell AUC Scores for Gene Sets",
-         scale = "row",         # 对行进行标准化
-         color = colorRampPalette(c("#4675B5",  "white", "red"))(50),  # 色标设置
-         fontsize = 10)         # 字体大小
+         scale = "row",         # Standardize rows
+         color = colorRampPalette(c("#4675B5",  "white", "red"))(50),  # Color scale
+         fontsize = 10)         # Font size
 
 
 ggsave("CD4_AUCell_pheatmap.pdf", 
@@ -1643,34 +1643,34 @@ ggsave("CD4_AUCell_pheatmap.pdf",
 # ==============================================================================
 # FIGURE S1 | C | original lines 1272-1305 | AddModuleScore heatmap
 # ==============================================================================
-# 绘制 AddModuleScore 的热图
+# Plot AddModuleScore results
 library(pheatmap)
 
-# 确保打分列都存在于 meta.data
+# Check that score columns exist in metadata
 score_cols_MSCORE <- intersect(score_cols_MSCORE, colnames(seu_cd4_nonTreg@meta.data))
 
-# 提取 MSCORE 矩阵：行 = 基因集（模块），列 = 细胞
+# Extract the module-by-cell score matrix
 MSCORE_mat <- t(as.matrix(seu_cd4_nonTreg@meta.data[, score_cols_MSCORE, drop = FALSE]))
-rownames(MSCORE_mat) <- score_cols_MSCORE          # 行名：各模块
-colnames(MSCORE_mat) <- colnames(seu_cd4_nonTreg)  # 列名：细胞 barcodes
+rownames(MSCORE_mat) <- score_cols_MSCORE          # Rows are modules
+colnames(MSCORE_mat) <- colnames(seu_cd4_nonTreg)  # Columns are cell barcodes
 
-# 绘制热图
+# Draw the heatmap
 CD4_MSCORE_pheatmap <- pheatmap(
   MSCORE_mat,
-  cluster_rows   = FALSE,  # 不对基因集（模块）做聚类，保持设定顺序
-  cluster_cols   = TRUE,   # 对列聚类
-  show_rownames  = TRUE,   # 显示行名（模块）
-  show_colnames  = FALSE,  # 不显示列名（细胞）
+  cluster_rows   = FALSE,  # Preserve the selected module order
+  cluster_cols   = TRUE,   # Cluster columns
+  show_rownames  = TRUE,   # Show module labels
+  show_colnames  = FALSE,  # Hide cell labels
   main           = "AddModuleScore (Module scores) for CD4_nonTreg",
-  scale          = "row",  # 对每个模块按行标准化
+  scale          = "row",  # Standardize each module by row
   color          = colorRampPalette(c("#4675B5", "white", "red"))(50),
   fontsize       = 10,
-  treeheight_col = 0 #聚类树高度（占的空间）：treeheight_row, treeheight_col
+  treeheight_col = 0 # Set dendrogram heights with treeheight_row and treeheight_col
 )
 
 
 
-# 保存为 PDF
+# Save as PDF
 ggsave("CD4_MSCORE_pheatmap.pdf",
        plot   = CD4_MSCORE_pheatmap,
        width  =8,

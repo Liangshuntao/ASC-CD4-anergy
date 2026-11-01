@@ -19,21 +19,21 @@ asc_suppressor_genes <- c(
   "Lama4","Lamb1","Lamb2","Vcam1","Icam1","Sele","Selp"
 )
 
-## 和 ASC 表的基因列取交集
+# Intersect selected genes with the ASC expression table
 asc_genes_in_data <- intersect(asc_suppressor_genes, rownames(expr_asc_gene_median))
 
 rownames(expr_asc_gene_median)
 expr_asc_gene_median
 
-asc_mat <- expr_asc_gene_median[asc_genes_in_data, ]  # 或 expr_imp_asc
+asc_mat <- expr_asc_gene_median[asc_genes_in_data, ]  # Gene-level expression matrix
 
 
 # SOURCE END 681:707
 
 # SOURCE BEGIN 729:886
-## 1. 定义每个基因所属模块（按你现在这张图里出现的基因来列）
+# Assign selected genes to candidate modules
 gene_module_map <- c(
-  ## TGF-β / BMP 轴
+  # TGF-beta / BMP axis
   "Tgfb1"  = "TGFb/BMP",
   "Tgfb2"  = "TGFb/BMP",
   "Tgfb3"  = "TGFb/BMP",
@@ -57,7 +57,7 @@ gene_module_map <- c(
   "Lgals1"   = "Checkpoint",
   "Cd47"     = "Checkpoint",
   
-  ## Metabolic immune suppression (IDO/ARG/腺苷/RA/前列腺素)
+  # Metabolic immune-related programs: IDO, ARG, adenosine, RA and prostaglandins
   "Ido1"    = "Metabolic",
   "Arg1"    = "Metabolic",
   "Nos2"    = "Metabolic",
@@ -117,20 +117,20 @@ gene_module_map <- c(
   "Selp"   = "ECM/adhesion"
 )
 
-## 2. 和表达矩阵取交集，只保留在 asc_mat 里其实有的基因
+# Retain genes present in asc_mat
 common_genes <- intersect(names(gene_module_map), rownames(asc_mat))
 
 asc_mat_sub <- asc_mat[common_genes, , drop = FALSE]
 
-## 3. 构建行注释：module
+# Construct row-module annotations
 row_annot <- data.frame(
   module = gene_module_map[common_genes]
 )
 rownames(row_annot) <- common_genes
 
-## 4. 按模块顺序 + 模块内平均表达差排序（ASC_P vs ASC_N）
-# 简单做法：先按 module，再按 ASC_P 平均值排序
-# 假设 group_asc 是 factor(c("ASC_N","ASC_P",...))，长度 = ncol(asc_mat_sub)
+# Order genes by module and mean ASC_P expression
+# Sort by module, then mean expression in ASC_P
+# Align the condition vector with expression-matrix columns
 asc_mean <- rowMeans(asc_mat_sub[, group_asc == "ASC_P", drop = FALSE], na.rm = TRUE)
 
 row_annot$module <- factor(
@@ -143,13 +143,13 @@ ord <- order(row_annot$module, asc_mean, decreasing = TRUE)
 asc_mat_sub <- asc_mat_sub[ord, , drop = FALSE]
 row_annot   <- row_annot[ord, , drop = FALSE]
 
-## 5. 列注释：condition（和之前 CD4/ASC 热图保持一致配色）
+# Construct condition annotations using consistent colors
 ann_col <- data.frame(
   condition = group_asc
 )
 rownames(ann_col) <- colnames(asc_mat_sub)
 
-## 6. 注释颜色：module + condition
+# Set module and condition annotation colors
 ann_colors <- list(
   module = c(
     "TGFb/BMP"        = "#E41A1C",
@@ -166,7 +166,7 @@ ann_colors <- list(
   )
 )
 
-## 7. 统一“投稿风格”的 pheatmap
+# Draw the module heatmap
 pheatmap(
   asc_mat_sub,
   scale = "row",
@@ -178,7 +178,7 @@ pheatmap(
   annotation_colors = ann_colors,
   show_rownames = TRUE,
   show_colnames = FALSE,
-  fontsize_row = 8,      # 行很多，字体略小
+  fontsize_row = 8,      # Reduce row-label size for dense panels
   fontsize_col = 8,
   border_color = "white",
   cellwidth = 20,

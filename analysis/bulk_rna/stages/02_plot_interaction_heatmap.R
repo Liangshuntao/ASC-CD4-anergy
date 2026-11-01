@@ -2,11 +2,11 @@
 # Executed by run_bulk_analysis.R; not a standalone entry point.
 
 # SOURCE BEGIN 320:379
-###第一步：把 DID 的 top genes 做热图，并用 annotation_row 标模块（投稿风格）
+# Plot leading DID genes with module annotations
 library(dplyr)
 library(pheatmap)
 
-# 1) 选 top genes（比如前 60 个，或 FDR<0.01 且 |logFC|>0.5）
+# Select genes using the thresholds below
 top_genes <- res_did %>%
   filter(FDR < 0.01) %>%
   arrange(FDR) %>%
@@ -17,14 +17,14 @@ mat_top <- expr_mat[top_genes, , drop=FALSE]
 
 write.csv(mat_top,  "ASC_DID_genes.csv",  row.names = T)
 
-# 2) 列注释（和之前一致）
+# Construct sample annotations
 annot_col <- data.frame(
   subtype   = sample_info$subtype,
   timepoint = sample_info$timepoint,
   row.names = sample_info$sample
 )
 
-# 3) 行注释（模块标注：先对你这批强信号做）
+# Assign gene-module annotations
 module_map <- tibble(
   Gene = top_genes,
   module = case_when(
@@ -43,7 +43,7 @@ annot_row <- data.frame(
   row.names = module_map$Gene
 )
 
-# 4) 输出 PDF（投稿风格）
+# Export the heatmap as PDF
 pdf("ASC_DID_topgenes_heatmap.pdf", width = 11, height = 13)
 pheatmap(
   mat_top,

@@ -1,5 +1,5 @@
 # SOURCE BEGIN 208:264
-# 4.4 火山图 + 热图（ASC）
+# ASC differential-protein volcano plot and heatmap
 colnames(res_ASC_anno)
 
 p.asc.volcano=ggplot(res_ASC_anno,
@@ -20,7 +20,7 @@ ggsave(filename = "ASC protein Volcano.plot.pdf",
 
 
 
-# 取 top 50 显著差异蛋白画热图
+# Plot the top 50 significant differential proteins
 top50_asc <- res_ASC_anno %>%
   filter(sig == "sig") %>%
   arrange(FDR) %>%
@@ -60,7 +60,7 @@ dev.off()
 # SOURCE END 208:264
 
 # SOURCE BEGIN 977:1030
-# 5.4 火山图 + 热图（CD4）
+# CD4 differential-protein volcano plot and heatmap
 p.cd4.volcano=ggplot(res_CD4_anno,
        aes(x = logFC, y = -log10(adj.P.Val), color = sig)) +
   geom_point(alpha = 0.7, size = 0.5) +

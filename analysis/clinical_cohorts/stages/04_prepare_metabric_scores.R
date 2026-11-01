@@ -8,20 +8,20 @@ rownames(metabric_clin) <- metabric_clin$SAMPLE_ID
 metabric_clin$PAM50_Subtype <- metabric_clin$CLAUDIN_SUBTYPE 
 
 # ------------------------------------------------------------------------------
-# 2. 本地读取表达矩阵 (修复连字符变小数点的问题)
+# Read the local expression matrix while preserving sample names
 # ------------------------------------------------------------------------------
 message("Reading the microarray expression matrix with sample names preserved...")
-# 【核心修复】：末尾加上 check.names = FALSE
+# Preserve original names with check.names = FALSE
 expr_raw <- read.delim(file.path(metabric_dir, "data_mrna_illumina_microarray.txt"), 
                        header = TRUE, stringsAsFactors = FALSE, check.names = FALSE)
 
-# 清洗矩阵：去重、去空、设行名
+# Remove duplicate and empty identifiers, then set row names
 expr_raw <- expr_raw[!duplicated(expr_raw$Hugo_Symbol) & expr_raw$Hugo_Symbol != "", ]
 rownames(expr_raw) <- expr_raw$Hugo_Symbol
 metabric_expr <- as.matrix(expr_raw[, -(1:2)])
 
 # ------------------------------------------------------------------------------
-# 3. 提取 Luminal B 并清洗生存数据
+# Select Luminal B samples and prepare survival variables
 # ------------------------------------------------------------------------------
 message("Selecting Luminal B samples and aligning the expression matrix...")
 metabric_lumb_clin <- metabric_clin %>%
@@ -32,14 +32,14 @@ metabric_lumb_clin <- metabric_clin %>%
   filter(grepl("LumB", PAM50_Subtype, ignore.case = TRUE) | grepl("Luminal B", PAM50_Subtype, ignore.case = TRUE)) %>%
   filter(!is.na(OS.time) & OS.time > 0)
 
-# 这一次，交集就不会是 0 了！
+# Check the number of aligned samples
 valid_samples <- intersect(rownames(metabric_lumb_clin), colnames(metabric_expr))
 message(paste("Aligned samples:", length(valid_samples)))
 
 metabric_lumb_clin <- metabric_lumb_clin[valid_samples, ]
 expr_lumb_meta <- as.matrix(metabric_expr[, valid_samples])
 # ------------------------------------------------------------------------------
-# 4. ssGSEA 跨平台打分
+# Calculate ssGSEA scores for the microarray data
 # ------------------------------------------------------------------------------
 message("Calculating ssGSEA scores for the microarray data...")
 meta_genes <- rownames(expr_lumb_meta)

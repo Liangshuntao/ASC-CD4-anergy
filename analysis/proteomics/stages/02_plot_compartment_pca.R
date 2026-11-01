@@ -1,5 +1,5 @@
 # SOURCE BEGIN 147:169
-# 4.2 PCA 看一下（可选）
+# Principal component analysis by compartment
 pca_asc <- prcomp(t(expr_imp_asc), scale. = FALSE)
 pca_asc_df <- data.frame(
   PC1 = pca_asc$x[, 1],

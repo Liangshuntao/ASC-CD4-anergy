@@ -10,14 +10,14 @@ clinical_base <- as.data.frame(colData(brca_data)) %>%
   ) %>%
   filter(!is.na(OS.time) & OS.time > 0 & !is.na(BRCA_Subtype_PAM50))
 
-# 表达矩阵准备
+# Prepare the expression matrix
 counts_tpm <- assay(brca_data, "tpm_unstrand")
 gene_info <- rowData(brca_data)
 valid_rows <- which(!is.na(gene_info$gene_name) & !duplicated(gene_info$gene_name))
 expr_matrix <- as.matrix(counts_tpm[valid_rows, clinical_base$barcode])
 rownames(expr_matrix) <- gene_info$gene_name[valid_rows]
 
-# 定义 Signature 集 (包含 ASC_P, CD4T, Anergy, Treg)
+# Define ASC_P and T-cell state signatures
 sig_list_all <- list(
   ASC_P_6 = c("ENG", "THY1", "NT5E", "PDGFRA", "VCAM1", "MCAM"),
   CD4T_Infiltration = c("CD4", "CD3D", "CD3E"),
@@ -26,14 +26,14 @@ sig_list_all <- list(
   CD4T_Exhaustion = c("PDCD1", "LAG3", "HAVCR2", "TIGIT", "CTLA4")
 )
 
-# 执行多维度 GSVA 打分
+# Calculate signature scores using GSVA
 if("ssgseaParam" %in% getNamespaceExports("GSVA")) {
   gsva_res <- gsva(ssgseaParam(expr_matrix, sig_list_all))
 } else {
   gsva_res <- gsva(expr_matrix, sig_list_all, method="ssgsea")
 }
 
-# 整合进 Luminal B 核心表
+# Integrate scores into the Luminal B analysis table
 gsva_df <- as.data.frame(t(gsva_res))
 gsva_df$barcode <- rownames(gsva_df)
 

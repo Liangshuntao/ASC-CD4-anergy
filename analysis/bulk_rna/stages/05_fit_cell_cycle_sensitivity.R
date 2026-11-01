@@ -12,13 +12,13 @@ suppressPackageStartupMessages({
 })
 
 ## -------------------------
-## 0) 前置：你应当已经有这些对象
-## expr_mat: 行=GeneSymbol，列=样本（ASC_N_1... after_ASC_P_3），数值=log2(normalized+1) 或类似
-## sample_info: 包含 sample / subtype(N,P) / timepoint(Before,After)
-## design: 你之前的 model.matrix(~0 + subtype*timepoint)（如果没有也没关系，下面会重建）
+# Required objects from the primary model
+# expr_mat: genes by samples, containing log2(normalized expression + 1)
+# sample_info: sample, subtype (N/P) and timepoint (Before/After)
+# The interaction design is reconstructed below
 ## -------------------------
 
-## 1) 取 Hallmark 里的 cell-cycle gene sets（Mus musculus）
+# Retrieve cell-cycle Hallmark sets mapped to mouse genes
 m_h <- msigdbr(species = "Mus musculus", category = "H")
 
 gs_g2m <- m_h %>% filter(gs_name == "HALLMARK_G2M_CHECKPOINT") %>% pull(gene_symbol) %>% unique()
@@ -28,9 +28,9 @@ cc_genes <- unique(c(gs_g2m, gs_e2f))
 cc_genes <- intersect(cc_genes, rownames(expr_mat))
 
 cat("Cell-cycle genes in expr_mat:", length(cc_genes), "\n")
-stopifnot(length(cc_genes) >= 10)  # 少于10说明映射/基因名有问题
+stopifnot(length(cc_genes) >= 10)  # Require at least 10 matched cell-cycle genes
 
-## 2) 计算 cell-cycle score（建议用：先按基因做 row-zscore，再对基因取均值）
+# Compute the mean of gene-wise standardized expression values
 zmat <- t(scale(t(expr_mat[cc_genes, , drop = FALSE])))   # row-wise z-score
 cc_score <- colMeans(zmat, na.rm = TRUE)
 
@@ -39,7 +39,7 @@ df_cc <- data.frame(sample = names(cc_score), cc_score = as.numeric(cc_score)) %
 
 print(df_cc %>% arrange(desc(cc_score)))
 
-## 3) 重建设计矩阵：加入 cc_score 作为协变量（主效应），仍保留 DID 交互项
+# Add cc_score as a covariate while retaining the interaction term
 sample_info2 <- sample_info %>%
   left_join(df_cc %>% select(sample, cc_score), by = "sample") %>%
   mutate(
@@ -51,7 +51,7 @@ design_cc <- model.matrix(~ 0 + subtype * timepoint + cc_score, data = sample_in
 colnames(design_cc) <- make.names(colnames(design_cc))
 print(colnames(design_cc))
 
-## 4) contrasts：与原来一致（但 DID 项现在仍然是 subtypeP.timepointAfter）
+# Use the same contrasts with the adjusted design
 cont_cc <- makeContrasts(
   Pre_P_vs_N  = subtypeP - subtypeN,
   Post_P_vs_N = (subtypeP + subtypeP.timepointAfter) - subtypeN,
@@ -76,8 +76,8 @@ res_post_cc <- get_res(fit_cc2, "Post_P_vs_N")
 
 write.csv(res_did_cc,  "ASC_RNA_DID_P_specific_change_ccAdjusted.csv", row.names = FALSE)
 
-## 5) 对比：原始 DID vs cc-adjusted DID（整体相关 + 重点候选基因）
-# 如果你原始 res_did 不在环境里，就从你之前导出的 CSV 读入：
+# Compare primary and cell-cycle-adjusted DID estimates
+# Read the primary DID table if it is not already loaded
 if(!exists("res_did")){
   res_did <- read.csv("ASC_RNA_DID_P_specific_change_all.csv", check.names = FALSE)
 }
@@ -90,7 +90,7 @@ cmp <- res_did %>%
 cat("Correlation of DID logFC (raw vs cc-adjusted): ",
     cor(cmp$logFC_raw, cmp$logFC_cc, use = "pairwise.complete.obs"), "\n")
 
-# 你关心的“机制候选基因”清单（可按需增删）
+# Selected genes for comparison
 genes_mech <- c(
   "Prelp","Thbs1","Thbs2","Timp3","Has2","Cemip","Npnt","Itga11",
   "Alcam","Lrrc32","Jag1","Bmp2","Ltbp2","Igfbp3","Angptl2","Slc7a5","Id1","Klf4","Serpina3n","Cd34","Ptprb"
@@ -104,7 +104,7 @@ print(cmp_mech)
 
 write.csv(cmp_mech, "ASC_DID_keyGenes_raw_vs_ccAdjusted.csv", row.names = FALSE)
 
-## 6) 重新做 Hallmark CAMERA（cc-adjusted 版本）
+# Run Hallmark CAMERA with the cell-cycle-adjusted design
 hallmark_list <- split(m_h$gene_symbol, m_h$gs_name)
 idx_h <- ids2indices(hallmark_list, rownames(expr_mat))
 

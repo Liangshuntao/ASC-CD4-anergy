@@ -2,16 +2,16 @@
 # Executed by run_bulk_analysis.R; not a standalone entry point.
 
 # SOURCE BEGIN 381:408
-#### 第二步：对 res_did 做 Hallmark 富集（更系统地把模块补齐）
+# Hallmark CAMERA analysis of the DID contrast
 
 library(msigdbr)
 library(limma)
 library(dplyr)
 library(tibble)
 
-# gene-level fit 已经在 fit2 里了，但 camera 需要 design 与 contrast
-# 复用你建模时的 design / cont（确保仍在环境中）
-# DID contrast 向量：
+# CAMERA requires the expression matrix, design matrix and contrast
+# Reuse design and cont from the primary model
+# Extract the DID contrast vector
 did_contrast <- cont[, "DID_P_specific_change"]
 
 m_h <- msigdbr(species="Mus musculus", category="H")
