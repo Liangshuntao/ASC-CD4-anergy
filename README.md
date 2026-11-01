@@ -43,13 +43,6 @@ Figure 4C–D uses a separate baseline dataset and the entry
 Other Figure 4 panels, Figures 5–7, S4, S10, the graphical abstract and Figure 9D
 are not claimed as R-generated experimental or schematic outputs.
 
-## Testing scope
-
-Scripts were checked for R syntax and entry-point help. Selected bulk RNA,
-proteomic and figure-source tables were compared with saved results. The full
-single-cell and clinical workflows were not rerun end to end. Required inputs
-and their availability are listed in [DATA_ACCESS.md](DATA_ACCESS.md).
-
 ## Citation
 
 If you use this code in your research, please cite the associated publication.
