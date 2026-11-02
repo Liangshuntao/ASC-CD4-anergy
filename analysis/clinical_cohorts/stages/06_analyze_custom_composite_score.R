@@ -48,15 +48,16 @@ library(patchwork)
 # Composite-score boxplot
 p_5A <- ggboxplot(final_df, x = "ASC_Group", y = "TIDE_Score",
                   fill = "ASC_Group", palette = c("#E41A1C", "#377EB8"),
-                  add = "jitter", title = "Fig 5A: Custom composite score") +
+                  add = "jitter", ylab = "Composite score", title = "Fig 5A: Custom composite score") +
   stat_compare_means(method = "wilcox.test", label = "p.format")
 p_5A
 
 # Proportions of median-based score labels
 p_5B <- ggplot(final_df, aes(x = ASC_Group, fill = Responder)) +
   geom_bar(position = "fill", width = 0.6) +
-  scale_fill_manual(values = c("False" = "#BEBEBE", "True" = "#FF7F00")) +
-  labs(title = "Fig 5B: Predicted Response Rate", y = "Proportion") +
+  scale_fill_manual(values = c("False" = "#BEBEBE", "True" = "#FF7F00"),
+                    name = "Group", labels = c("False" = "High", "True" = "Low")) +
+  labs(title = "Fig 5B: Median-based composite groups", y = "Proportion") +
   theme_pubr()
 p_5B
 
@@ -65,8 +66,8 @@ p_5B
 p_5C <- ggscatter(final_df, x = "ASC_P_6", y = "Exclusion",
                   add = "reg.line", conf.int = TRUE, 
                   cor.coef = TRUE, cor.method = "spearman",
-                  xlab = "ASC_P Score", ylab = "Immune Exclusion Score",
-                  title = "Fig 5C: ASC_P drives Immune Exclusion") + theme_bw()
+                  xlab = "ASC_P Score", ylab = "Custom exclusion score",
+                  title = "Fig 5C: ASC_P and custom exclusion score") + theme_bw()
 
 p_5C 
 # Assemble the panels
